@@ -1,0 +1,14 @@
+{
+  "short_name": "Nhà kính công nghệ cao Đà Lạt",
+  "name": "Nhà kính công nghệ cao Đà Lạt",
+  "icons": [
+    {
+      "src": "nha-kinh-cong-nghe-cao-da-lat.jpg",
+      "type": "image/jpeg"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#e98b12",
+  "background_color": "#fffdf8"
+}
