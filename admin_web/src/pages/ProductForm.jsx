@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Page, Btn } from "../components/UI";
+import MediaPreview from "../components/MediaPreview";
 import { categories, brands, products, variants } from "../api";
 import { one, unwrap, idOf, err } from "../utils/helpers";
 
 const EMPTY_PRODUCT = {
-  name: "", slug: "", shortDescription: "", description: "", category: "", brand: "",
+  name: "", nameEn: "", slug: "", shortDescription: "", shortDescriptionEn: "", description: "", descriptionEn: "", category: "", brand: "",
   sku: "", barcode: "", thumbnail: "", images: "", video: "", status: "active",
   featured: false, isNew: true, isBestSeller: false, isOnSale: false,
   metaTitle: "", metaDescription: "", metaKeywords: ""
@@ -169,6 +170,9 @@ export default function ProductForm() {
   const productData = () => {
     const data = {
       name: form.name.trim(),
+      nameEn: form.nameEn.trim(),
+      shortDescriptionEn: form.shortDescriptionEn.trim(),
+      descriptionEn: form.descriptionEn.trim(),
       slug: form.slug.trim() || slugify(form.name),
       category: form.category,
       status: form.status || "draft",
@@ -184,10 +188,9 @@ export default function ProductForm() {
     if (form.brand) data.brand = form.brand;
     if (form.sku.trim()) data.sku = form.sku.trim();
     if (form.barcode.trim()) data.barcode = form.barcode.trim();
-    if (form.thumbnail.trim()) data.thumbnail = form.thumbnail.trim();
-    const images = form.images.split("\n").map(x => x.trim()).filter(Boolean);
-    if (images.length) data.images = images;
-    if (form.video.trim()) data.video = form.video.trim();
+    data.thumbnail = form.thumbnail.trim();
+    data.images = form.images.split("\n").map(x => x.trim()).filter(Boolean);
+    data.video = form.video.trim();
     data.featured = !!form.featured;
     data.isNew = !!form.isNew;
     data.isBestSeller = !!form.isBestSeller;
@@ -218,9 +221,8 @@ export default function ProductForm() {
     if (row.barcode.trim()) data.barcode = row.barcode.trim();
     if (Number.isFinite(compare)) data.compareAtPrice = compare;
     if (Number.isFinite(cost)) data.costPrice = cost;
-    if (row.thumbnail.trim()) data.thumbnail = row.thumbnail.trim();
-    const images = row.images.split("\n").map(x => x.trim()).filter(Boolean);
-    if (images.length) data.images = images;
+    data.thumbnail = row.thumbnail.trim();
+    data.images = row.images.split("\n").map(x => x.trim()).filter(Boolean);
     if (String(row.weight).trim() !== "" && Number.isFinite(Number(row.weight))) data.weight = Number(row.weight);
     const dimensions = {
       length: Number(row.length) || 0,
@@ -377,13 +379,16 @@ export default function ProductForm() {
         <div className="section-head"><div><h2>1. Thông tin sản phẩm</h2><p className="muted">Thông tin dùng chung cho toàn bộ sản phẩm.</p></div></div>
         <div className="formgrid">
           <label className={fieldErrors.name ? "has-error" : ""}>Tên sản phẩm *<input required value={form.name} onChange={e => setForm(x => ({ ...x, name: e.target.value, slug: (!edit && !slugTouched) ? slugify(e.target.value) : x.slug }))} placeholder="Ví dụ: Áo thun nam cotton" />{fieldErrors.name && <small className="field-error">{fieldErrors.name}</small>}</label>
+          <label>Tên sản phẩm (English)<input value={form.nameEn} onChange={e => set("nameEn", e.target.value)} placeholder="Product name in English" /></label>
           <label>Slug<input value={form.slug} onChange={e => { setSlugTouched(true); set("slug", e.target.value); }} placeholder="Tự tạo nếu bỏ trống" /></label>
           <label className={fieldErrors.category ? "has-error" : ""}>Danh mục *<select value={form.category} onChange={e => set("category", e.target.value)}><option value="">-- Chọn danh mục --</option>{categoriesList.map(c => <option key={idOf(c)} value={idOf(c)}>{c.name}</option>)}</select>{fieldErrors.category && <small className="field-error">{fieldErrors.category}</small>}</label>
           <label>Thương hiệu<select value={form.brand} onChange={e => set("brand", e.target.value)}><option value="">-- Không chọn --</option>{brandsList.map(b => <option key={idOf(b)} value={idOf(b)}>{b.name}</option>)}</select></label>
           <label>Mã sản phẩm (SKU chung)<input value={form.sku} onChange={e => set("sku", e.target.value)} placeholder="Không bắt buộc" /></label>
           <label>Barcode chung<input value={form.barcode} onChange={e => set("barcode", e.target.value)} placeholder="Không bắt buộc" /></label>
           <label className="full">Mô tả ngắn<textarea value={form.shortDescription} onChange={e => set("shortDescription", e.target.value)} rows="3" placeholder="Mô tả ngắn hiển thị trong danh sách/sàn" /></label>
+          <label className="full">Mô tả ngắn (English)<textarea value={form.shortDescriptionEn} onChange={e => set("shortDescriptionEn", e.target.value)} rows="3" placeholder="Short product description in English" /></label>
           <label className="full">Mô tả chi tiết<textarea value={form.description} onChange={e => set("description", e.target.value)} rows="6" placeholder="Thông tin, công dụng, chất liệu, bảo hành..." /></label>
+          <label className="full">Mô tả chi tiết (English)<textarea value={form.descriptionEn} onChange={e => set("descriptionEn", e.target.value)} rows="6" placeholder="Full product description in English" /></label>
         </div>
       </div>
 
@@ -416,7 +421,7 @@ export default function ProductForm() {
           <td><input value={row.barcode} placeholder="Không bắt buộc" onChange={e => updateVariant(i, { barcode: e.target.value })} /></td>
           <td><input type="number" min="0" value={row.weight} placeholder="g" onChange={e => updateVariant(i, { weight: e.target.value })} /></td>
           <td><div className="dimension-inputs"><input type="number" min="0" placeholder="D" value={row.length} onChange={e => updateVariant(i, { length: e.target.value })}/><input type="number" min="0" placeholder="R" value={row.width} onChange={e => updateVariant(i, { width: e.target.value })}/><input type="number" min="0" placeholder="C" value={row.height} onChange={e => updateVariant(i, { height: e.target.value })}/></div></td>
-          <td><input value={row.thumbnail} placeholder="URL ảnh" onChange={e => updateVariant(i, { thumbnail: e.target.value })} /></td>
+          <td><input value={row.thumbnail} placeholder="URL ảnh/video" onChange={e => updateVariant(i, { thumbnail: e.target.value })} />{row.thumbnail && <MediaPreview src={row.thumbnail} alt="Xem trước media Variant" style={{ width: 52, height: 42, objectFit: "cover", marginTop: 5, borderRadius: 4 }} />}</td>
           <td><input type="checkbox" checked={row.active} onChange={e => updateVariant(i, { active: e.target.checked })} /></td>
           <td><button type="button" className="ghost remove-attr" disabled={variantRows.length <= 1} onClick={() => removeVariant(i)}>×</button></td>
         </tr>)}</tbody></table></div>
@@ -426,9 +431,12 @@ export default function ProductForm() {
       <div className="panel form-section">
         <div className="section-head"><div><h2>4. Hình ảnh, trạng thái & thông tin thêm</h2><p className="muted">Không bắt buộc, chỉ mở rộng khi cần.</p></div><Btn type="button" onClick={() => setShowAdvanced(x => !x)}>{showAdvanced ? "Thu gọn" : "Mở thông tin thêm"}</Btn></div>
         {showAdvanced && <div className="formgrid">
-          <label>Thumbnail<input value={form.thumbnail} onChange={e => set("thumbnail", e.target.value)} /></label>
-          <label>Video URL<input value={form.video} onChange={e => set("video", e.target.value)} /></label>
-          <label className="full">Ảnh sản phẩm (mỗi URL một dòng)<textarea value={form.images} onChange={e => set("images", e.target.value)} /></label>
+          <label>URL ảnh/video đại diện<input value={form.thumbnail} onChange={e => set("thumbnail", e.target.value)} placeholder="URL ảnh hoặc video cho thẻ sản phẩm" /></label>
+          <label>URL video sản phẩm<input value={form.video} onChange={e => set("video", e.target.value)} placeholder="URL video riêng của sản phẩm" /></label>
+          <label className="full">Gallery ảnh/video (mỗi URL một dòng)<textarea value={form.images} onChange={e => set("images", e.target.value)} placeholder="Dán từng URL ảnh hoặc video trên một dòng" /></label>
+          {form.thumbnail && <div className="full"><b>Xem trước media đại diện</b><MediaPreview src={form.thumbnail} alt={form.name} style={{ width: 180, height: 125, objectFit: "cover", marginTop: 8, borderRadius: 6 }} /></div>}
+          {form.video && <div className="full"><b>Xem trước video sản phẩm</b><MediaPreview src={form.video} mediaType="video" alt={form.name} style={{ width: 260, height: 150, objectFit: "cover", marginTop: 8, borderRadius: 6 }} /></div>}
+          {form.images.split("\n").map((src, i) => src.trim() && <MediaPreview key={`${src}-${i}`} src={src.trim()} alt={`${form.name} ${i + 1}`} style={{ width: 100, height: 75, objectFit: "cover", margin: "8px 8px 0 0", borderRadius: 5 }} />)}
           <label>Trạng thái<select value={form.status} onChange={e => set("status", e.target.value)}><option value="draft">Nháp</option><option value="active">Đang bán</option><option value="inactive">Tạm ngưng</option><option value="archived">Lưu trữ</option></select></label>
           <label className="check"><input type="checkbox" checked={form.featured} onChange={e => set("featured", e.target.checked)} /> Nổi bật</label>
           <label className="check"><input type="checkbox" checked={form.isNew} onChange={e => set("isNew", e.target.checked)} /> Sản phẩm mới</label>

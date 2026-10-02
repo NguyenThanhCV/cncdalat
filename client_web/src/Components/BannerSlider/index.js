@@ -3,6 +3,9 @@ import { Carousel } from "antd";
 import { Link, useLocation } from "react-router-dom";
 import { ArrowRightOutlined, ShoppingOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import * as api from "../../api/shop";
+import { useTranslation } from "react-i18next";
+import { localizedField } from "../../utils/localized";
+import MediaDisplay from "../MediaDisplay";
 import "./index.css";
 
 function pageKeyFor(pathname) {
@@ -27,11 +30,20 @@ function BannerAction({ banner }) {
 }
 
 const BannerSlider = () => {
+  const { i18n, t } = useTranslation();
   const { pathname } = useLocation();
   const pageKey = useMemo(() => pageKeyFor(pathname), [pathname]);
   const carouselRef = useRef(null);
   const [banners, setBanners] = useState([]);
   const [loadedPage, setLoadedPage] = useState("");
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const update = (event) => setIsMobile(event.matches);
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -53,19 +65,19 @@ const BannerSlider = () => {
     "--banner-content-right": position === "right" ? "9%" : "auto",
     "--banner-content-transform": position === "center" ? "translate(-50%, -50%)" : "translateY(-50%)",
   });
-  return <section className="banner-slider" aria-label="Banner trang">
+  return <section className="banner-slider" aria-label={t("pageBanner")}>
     <div className="banner-frame">
     <Carousel ref={carouselRef} autoplay={banners.length > 1} autoplaySpeed={5000} dots={banners.length > 1} arrows={false} effect="fade">
-      {banners.map((banner) => <div className="banner-slide" key={banner._id} style={{ "--banner-overlay-opacity": banner.overlayOpacity ?? 0.45, ...textPosition(banner.textPosition) }}>
-        <picture className="banner-picture">{banner.mobileImageUrl && <source media="(max-width: 767px)" srcSet={banner.mobileImageUrl} />}<img src={banner.imageUrl} alt={banner.altText || banner.title || banner.name} className="banner-image" /></picture>
+      {banners.map((banner) => { const title = localizedField(banner, "title", i18n.resolvedLanguage); const eyebrow = localizedField(banner, "eyebrow", i18n.resolvedLanguage); const description = localizedField(banner, "description", i18n.resolvedLanguage); const buttonText = localizedField(banner, "buttonText", i18n.resolvedLanguage); const altText = localizedField(banner, "altText", i18n.resolvedLanguage); const hasMobileMedia = isMobile && Boolean(banner.mobileImageUrl); const mediaUrl = hasMobileMedia ? banner.mobileImageUrl : banner.imageUrl; const mediaType = hasMobileMedia ? (banner.mobileMediaType || "image") : banner.mediaType; return <div className="banner-slide" key={banner._id} style={{ "--banner-overlay-opacity": banner.overlayOpacity ?? 0.45, ...textPosition(banner.textPosition) }}>
+        <div className="banner-picture"><MediaDisplay src={mediaUrl} mediaType={mediaType} alt={altText || title || banner.name} className="banner-image" /></div>
         <div className="banner-overlay" />
         <div className="banner-content">
-          {(banner.eyebrow || pageKey === "home") && <div className="banner-label"><ShoppingOutlined /><span>{banner.eyebrow || "NHÀ KÍNH CÔNG NGHỆ CAO ĐÀ LẠT"}</span></div>}
-          {banner.title && <h1>{banner.title}</h1>}
-          {banner.description && <p>{banner.description}</p>}
-          <BannerAction banner={banner} />
+          {(eyebrow || pageKey === "home") && <div className="banner-label"><ShoppingOutlined /><span>{eyebrow || "NHÀ KÍNH CÔNG NGHỆ CAO ĐÀ LẠT"}</span></div>}
+          {title && <h1>{title}</h1>}
+          {description && <p>{description}</p>}
+          <BannerAction banner={{ ...banner, buttonText: buttonText || banner.buttonText }} />
         </div>
-      </div>)}
+      </div>; })}
     </Carousel>
     {banners.length > 1 && <>
       <button type="button" className="banner-manual-arrow banner-manual-prev" onClick={handlePrev} aria-label="Banner trước"><LeftOutlined /></button>

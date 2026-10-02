@@ -16,7 +16,6 @@ import {
 import {
   Button,
   Empty,
-  Image,
   InputNumber,
   Skeleton,
   Tag,
@@ -27,6 +26,9 @@ import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { localizedField } from "../../utils/localized";
+import MediaDisplay from "../../Components/MediaDisplay";
 
 import {
   clearProductDetailAction,
@@ -70,9 +72,9 @@ const sanitizeDescription = (html) => {
   return document.body.innerHTML;
 };
 
-const formatPrice = (price) => {
+const formatPrice = (price, t) => {
   if (price === undefined || price === null) {
-    return "Liên hệ";
+    return t("contactForPrice");
   }
 
   return `${Number(price).toLocaleString("vi-VN")}đ`;
@@ -118,6 +120,7 @@ const ProductDetail = ({
   setSelectedVariant,
   clearProductDetail,
 }) => {
+  const { t, i18n } = useTranslation();
   const { productId } = useParams();
 
   const navigate = useNavigate();
@@ -142,13 +145,19 @@ const ProductDetail = ({
       return;
     }
 
+    // Reuse of this route keeps component-local option state alive; clear it
+    // before loading another product so a stale selection cannot reach cart.
+    setSelectedAttributes({});
+    setQuantity(1);
+    setActiveImage(0);
+    setSelectedVariant(null);
     getProductDetail(productId);
     getProductVariants(productId);
 
     return () => {
       clearProductDetail();
     };
-  }, [productId, getProductDetail, getProductVariants, clearProductDetail]);
+  }, [productId, getProductDetail, getProductVariants, setSelectedVariant, clearProductDetail]);
 
   useEffect(() => {
     let active = true;
@@ -161,11 +170,11 @@ const ProductDetail = ({
         setReviewError("");
       })
       .catch((error) => {
-        if (active) setReviewError(error.response?.data?.message || "Không thể tải đánh giá.");
+        if (active) setReviewError(error.response?.data?.message || t("cannotLoadReviews"));
       })
       .finally(() => { if (active) setReviewsLoading(false); });
     return () => { active = false; };
-  }, [productId]);
+  }, [productId, t]);
 
   useEffect(() => {
     let active = true;
@@ -283,7 +292,7 @@ const ProductDetail = ({
     }
 
     const matchedVariant = variants.find((variant) => {
-      if (!variant?.active) {
+      if (variant?.active === false || getAvailableStock(variant) <= 0) {
         return false;
       }
 
@@ -319,8 +328,9 @@ const ProductDetail = ({
    * tự chọn.
    */
   useEffect(() => {
-    if (variants.length === 1 && variants[0]) {
-      const variant = variants[0];
+    const availableVariants = variants.filter((variant) => variant?.active !== false && getAvailableStock(variant) > 0);
+    if (availableVariants.length === 1 && availableVariants[0]) {
+      const variant = availableVariants[0];
 
       setSelectedVariant(variant);
 
@@ -357,7 +367,12 @@ const ProductDetail = ({
    * SKU.
    */
   const currentSku = currentVariant?.sku || productDetail?.sku || "";
-  const safeDescription = useMemo(() => sanitizeDescription(productDetail?.description), [productDetail?.description]);
+  const productName = localizedField(productDetail, "name", i18n.resolvedLanguage);
+  const localizedShortDescription = localizedField(productDetail, "shortDescription", i18n.resolvedLanguage);
+  const localizedDescription = localizedField(productDetail, "description", i18n.resolvedLanguage);
+  const brandName = localizedField(productDetail?.brand, "name", i18n.resolvedLanguage);
+  const categoryName = localizedField(productDetail?.category, "name", i18n.resolvedLanguage);
+  const safeDescription = useMemo(() => sanitizeDescription(localizedDescription), [localizedDescription]);
 
   /*
    * Ảnh sản phẩm.
@@ -392,6 +407,8 @@ const ProductDetail = ({
         });
       }
     }
+
+    if (productDetail?.video && !list.includes(productDetail.video)) list.push(productDetail.video);
 
     return list;
   }, [currentVariant, productDetail]);
@@ -484,17 +501,25 @@ const ProductDetail = ({
   const addCurrentItem = async (redirect = false) => {
     if (!productDetail) return;
     if (!localStorage.getItem("token")) {
-      message.warning("Vui lòng đăng nhập để mua hàng.");
+      message.warning(t("loginToBuy"));
       navigate("/login");
       return;
     }
     if (hasVariants && !currentVariant) {
-      message.warning("Vui lòng chọn đầy đủ phiên bản sản phẩm.");
+      message.warning(t("selectProductOptions"));
+      return;
+    }
+    if (hasVariants && (currentVariant?.active === false || !currentVariant?._id)) {
+      message.warning(t("selectProductOptions"));
+      return;
+    }
+    if (isVariantLoading) {
+      message.info(t("loadingProducts"));
       return;
     }
     if (!currentVariant && !productDetail._id) return;
     if (currentStock <= 0) {
-      message.warning("Sản phẩm hiện đã hết hàng.");
+      message.warning(t("soldOut"));
       return;
     }
     try {
@@ -504,10 +529,10 @@ const ProductDetail = ({
         quantity: Number(quantity),
       });
       window.dispatchEvent(new Event("cart-change"));
-      message.success("Đã thêm sản phẩm vào giỏ hàng.");
+      message.success(t("addedToCart"));
       if (redirect) navigate("/cart");
     } catch (error) {
-      message.error(error.response?.data?.message || "Không thể thêm sản phẩm vào giỏ hàng.");
+      message.error(error.response?.data?.message || t("addToCartFailed"));
     }
   };
 
@@ -517,7 +542,7 @@ const ProductDetail = ({
 
   const handleFavorite = async () => {
     if (!localStorage.getItem("token")) {
-      message.info("Đăng nhập để lưu sản phẩm yêu thích.");
+      message.info(t("loginToSaveFavorite"));
       navigate(`/login?next=/products/${productId}`);
       return;
     }
@@ -526,14 +551,14 @@ const ProductDetail = ({
       if (favorite) {
         await removeWishlist(productId);
         setFavorite(false);
-        message.success("Đã bỏ khỏi danh sách yêu thích.");
+        message.success(t("favoriteRemoved"));
       } else {
         await addWishlist(productId);
         setFavorite(true);
-        message.success("Đã lưu vào danh sách yêu thích.");
+        message.success(t("favoriteSaved"));
       }
     } catch (error) {
-      message.error(error.response?.data?.message || "Không thể cập nhật danh sách yêu thích.");
+      message.error(error.response?.data?.message || t("favoriteUpdateFailed"));
     } finally {
       setFavoriteBusy(false);
     }
@@ -542,7 +567,7 @@ const ProductDetail = ({
   const submitReview = async (event) => {
     event.preventDefault();
     if (!localStorage.getItem("token")) {
-      message.info("Đăng nhập để gửi đánh giá.");
+      message.info(t("loginToReview"));
       navigate(`/login?next=/products/${productId}`);
       return;
     }
@@ -551,25 +576,25 @@ const ProductDetail = ({
     try {
       await createReview({ product: productId, ...reviewForm });
       setReviewForm({ rating: 5, title: "", content: "" });
-      message.success("Đánh giá đã được gửi và sẽ hiển thị sau khi duyệt.");
+      message.success(t("reviewSubmitted"));
     } catch (error) {
-      setReviewError(error.response?.data?.message || "Không thể gửi đánh giá.");
+      setReviewError(error.response?.data?.message || t("reviewSubmitFailed"));
     } finally {
       setReviewSaving(false);
     }
   };
 
-  const productDescription = String(productDetail?.shortDescription || productDetail?.description || "")
+  const productDescription = String(localizedShortDescription || localizedDescription || "")
     .replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-  const productSchema = productDetail?.name ? {
+  const productSchema = productName ? {
     "@context": process.env.REACT_APP_SCHEMA_CONTEXT,
     "@type": "Product",
-    name: productDetail.name,
-    description: productDescription || `Sản phẩm ${productDetail.name} tại Nhà kính công nghệ cao Đà Lạt.`,
+    name: productName,
+    description: productDescription || `${productName} at Da Lat High-Tech Greenhouse.`,
     image: images,
     sku: currentSku || productDetail.sku || undefined,
-    category: productDetail.category?.name || undefined,
-    brand: productDetail.brand?.name ? { "@type": "Brand", name: productDetail.brand.name } : undefined,
+    category: categoryName || undefined,
+    brand: brandName ? { "@type": "Brand", name: brandName } : undefined,
     ...(Number(productDetail.ratingCount) > 0 && Number(productDetail.ratingAverage) > 0 ? {
       aggregateRating: {
         "@type": "AggregateRating",
@@ -588,7 +613,7 @@ const ProductDetail = ({
     } : {}),
   } : undefined;
   useSeo({
-    title: productDetail?.name ? `${productDetail.name} | Nhà kính công nghệ cao Đà Lạt` : undefined,
+    title: productName ? `${productName} | Nhà kính công nghệ cao Đà Lạt` : undefined,
     description: productDescription || undefined,
     image: images[0],
     type: "product",
@@ -614,7 +639,7 @@ const ProductDetail = ({
     return (
       <div className="product-detail-page">
         <div className="product-detail-container">
-          <Empty description="Không tìm thấy sản phẩm" />
+          <Empty description={t("productNotFound")} />
 
           <div className="product-empty-action">
             <Button
@@ -630,7 +655,7 @@ const ProductDetail = ({
 
   const isOutOfStock = currentStock <= 0;
 
-  const needChooseVariant = hasVariants && !currentVariant;
+  const needChooseVariant = hasVariants && (!currentVariant || currentVariant.active === false || getAvailableStock(currentVariant) <= 0);
 
   return (
     <div className="product-detail-page">
@@ -641,7 +666,7 @@ const ProductDetail = ({
           className="product-back-button"
           onClick={() => navigate(-1)}>
           <ArrowLeftOutlined />
-          <span>Quay lại</span>
+          <span>{t("back")}</span>
         </button>
 
         {/* MAIN */}
@@ -650,13 +675,9 @@ const ProductDetail = ({
           <div className="product-gallery">
             <div className="product-gallery-main">
               {images.length > 0 ? (
-                <Image
-                  src={images[activeImage]}
-                  alt={productDetail.name}
-                  preview
-                />
+                <MediaDisplay src={images[activeImage]} alt={productName} className="product-gallery-main-media" />
               ) : (
-                <div className="product-no-image">Không có hình ảnh</div>
+                <div className="product-no-image">{t("noImage")}</div>
               )}
             </div>
 
@@ -670,7 +691,7 @@ const ProductDetail = ({
                       activeImage === index ? "active" : ""
                     }`}
                     onClick={() => setActiveImage(index)}>
-                    <img src={image} alt={`${productDetail.name}-${index}`} />
+                    <MediaDisplay src={image} alt={`${productName}-${index}`} />
                   </button>
                 ))}
               </div>
@@ -681,11 +702,11 @@ const ProductDetail = ({
           <div className="product-detail-info">
             {/* BADGES */}
             <div className="product-detail-badges">
-              {productDetail.isNew && <Tag color="green">Mới</Tag>}
+              {productDetail.isNew && <Tag color="green">{t("newProduct")}</Tag>}
 
-              {productDetail.isBestSeller && <Tag color="orange">Bán chạy</Tag>}
+              {productDetail.isBestSeller && <Tag color="orange">{t("bestSellerTag")}</Tag>}
 
-              {productDetail.featured && <Tag color="blue">Nổi bật</Tag>}
+              {productDetail.featured && <Tag color="blue">{t("featured")}</Tag>}
 
               {discountPercent > 0 && (
                 <Tag color="red">-{discountPercent}%</Tag>
@@ -693,13 +714,13 @@ const ProductDetail = ({
             </div>
 
             {/* NAME */}
-            <h1 className="product-detail-title">{productDetail.name}</h1>
+            <h1 className="product-detail-title">{productName}</h1>
 
             <div className="product-detail-taxonomy">
-              {productDetail.brand?.name && <button type="button" onClick={() => navigate(`/products?brand=${productDetail.brand._id}`)}>{productDetail.brand.name}</button>}
-              {productDetail.category?.name && <button type="button" onClick={() => navigate(`/products?category=${productDetail.category._id}`)}>{productDetail.category.name}</button>}
+              {brandName && <button type="button" onClick={() => navigate(`/products?brand=${productDetail.brand._id}`)}>{brandName}</button>}
+              {categoryName && <button type="button" onClick={() => navigate(`/products?category=${productDetail.category._id}`)}>{categoryName}</button>}
             </div>
-            {productDetail.shortDescription && <p className="product-detail-short-description">{productDetail.shortDescription}</p>}
+            {localizedShortDescription && <p className="product-detail-short-description">{localizedShortDescription}</p>}
 
             {/* RATING */}
             <div className="product-detail-rating">
@@ -724,19 +745,19 @@ const ProductDetail = ({
                 đánh giá)
               </span>
 
-              <span>Đã bán {Number(productDetail.soldCount || 0)}</span>
+              <span>{t("soldCount", { count: Number(productDetail.soldCount || 0) })}</span>
             </div>
 
             {/* PRICE */}
             <div className="product-detail-price-box">
               <div className="product-detail-price">
-                {formatPrice(currentPrice)}
+                {formatPrice(currentPrice, t)}
               </div>
 
               {currentOriginalPrice &&
                 Number(currentOriginalPrice) > Number(currentPrice) && (
                   <div className="product-detail-original-price">
-                    {formatPrice(currentOriginalPrice)}
+                    {formatPrice(currentOriginalPrice, t)}
                   </div>
                 )}
             </div>
@@ -808,7 +829,7 @@ const ProductDetail = ({
             {/* CHOOSE VARIANT MESSAGE */}
             {needChooseVariant && (
               <div className="variant-required-message">
-                <span>Vui lòng chọn đầy đủ các thuộc tính sản phẩm.</span>
+                <span>{t("selectAllAttributes")}</span>
               </div>
             )}
 
@@ -821,18 +842,18 @@ const ProductDetail = ({
 
             {/* STOCK */}
             <div className="product-detail-stock">
-              <span>Tồn kho:</span>
+              <span>{t("stock")}</span>
 
               {isOutOfStock ? (
-                <strong className="stock-out">Hết hàng</strong>
+                <strong className="stock-out">{t("outOfStock")}</strong>
               ) : (
-                <strong className="stock-in">{currentStock} sản phẩm</strong>
+                <strong className="stock-in">{t("stockAvailable", { count: currentStock })}</strong>
               )}
             </div>
 
             {/* QUANTITY */}
             <div className="product-detail-quantity">
-              <span className="quantity-label">Số lượng:</span>
+              <span className="quantity-label">{t("quantity")}</span>
 
               <div className="quantity-control">
                 <button
@@ -875,7 +896,7 @@ const ProductDetail = ({
                   favorite ? "active" : ""
                 }`}
                 loading={favoriteBusy}
-                aria-label={favorite ? "Bỏ yêu thích" : "Thêm yêu thích"}
+                aria-label={favorite ? t("removeFavorite") : t("addFavorite")}
                 onClick={handleFavorite}
               />
 
@@ -885,7 +906,7 @@ const ProductDetail = ({
                 className="product-add-cart-button"
                 disabled={isOutOfStock || needChooseVariant}
                 onClick={handleAddToCart}>
-                Thêm vào giỏ
+                {t("addToCartFull")}
               </Button>
 
               <Button
@@ -894,7 +915,7 @@ const ProductDetail = ({
                 className="product-buy-button"
                 disabled={isOutOfStock || needChooseVariant}
                 onClick={handleBuyNow}>
-                Mua ngay
+                {t("buyNow")}
               </Button>
             </div>
 
@@ -904,9 +925,9 @@ const ProductDetail = ({
                 <CheckCircleOutlined />
 
                 <div>
-                  <strong>Sản phẩm chính hãng</strong>
+                  <strong>{t("authenticProduct")}</strong>
 
-                  <span>Thông tin sản phẩm được quản lý rõ ràng</span>
+                  <span>{t("managedProductInfo")}</span>
                 </div>
               </div>
 
@@ -914,9 +935,9 @@ const ProductDetail = ({
                 <SafetyCertificateOutlined />
 
                 <div>
-                  <strong>Thanh toán an toàn</strong>
+                  <strong>{t("securePayment")}</strong>
 
-                  <span>Bảo mật thông tin khách hàng</span>
+                  <span>{t("customerDataSecure")}</span>
                 </div>
               </div>
 
@@ -924,9 +945,9 @@ const ProductDetail = ({
                 <ReloadOutlined />
 
                 <div>
-                  <strong>Hỗ trợ mua hàng</strong>
+                  <strong>{t("purchaseSupport")}</strong>
 
-                  <span>Hỗ trợ trong quá trình đặt mua</span>
+                  <span>{t("purchaseSupportText")}</span>
                 </div>
               </div>
             </div>
@@ -935,17 +956,17 @@ const ProductDetail = ({
 
         {/* DESCRIPTION */}
         <div className="product-detail-section">
-          <h2>Mô tả sản phẩm</h2>
+          <h2>{t("productDescription")}</h2>
 
           <div className="product-description">
-            {productDetail.description ? (
+            {localizedDescription ? (
               <div
                 dangerouslySetInnerHTML={{
                 __html: safeDescription,
                 }}
               />
             ) : (
-              <span>Chưa có mô tả sản phẩm.</span>
+              <span>{t("noProductDescription")}</span>
             )}
           </div>
         </div>
@@ -956,7 +977,7 @@ const ProductDetail = ({
         {productDetail.attributes &&
           Object.keys(productDetail.attributes).length > 0 && (
             <div className="product-detail-section">
-              <h2>Thông tin sản phẩm</h2>
+              <h2>{t("productInformation")}</h2>
 
               <div className="product-attributes">
                 {Object.entries(productDetail.attributes).map(
@@ -974,12 +995,12 @@ const ProductDetail = ({
 
         {/* EXTRA INFO */}
         <div className="product-detail-section">
-          <h2>Thông tin khác</h2>
+          <h2>{t("otherInformation")}</h2>
 
           <div className="product-extra-grid">
             {productDetail.weight && (
               <div>
-                <span>Khối lượng</span>
+                <span>{t("weight")}</span>
 
                 <strong>
                   {productDetail.weight} {productDetail.weightUnit || "g"}
@@ -988,14 +1009,14 @@ const ProductDetail = ({
             )}
 
             {productDetail.dimensions && Object.values(productDetail.dimensions).some(Boolean) && (
-              <div><span>Kích thước</span><strong>{[productDetail.dimensions.length, productDetail.dimensions.width, productDetail.dimensions.height].filter(Boolean).join(" × ")} cm</strong></div>
+              <div><span>{t("dimensions")}</span><strong>{[productDetail.dimensions.length, productDetail.dimensions.width, productDetail.dimensions.height].filter(Boolean).join(" × ")} cm</strong></div>
             )}
 
-            {currentVariant?.barcode && <div><span>Mã vạch</span><strong>{currentVariant.barcode}</strong></div>}
+            {currentVariant?.barcode && <div><span>{t("barcode")}</span><strong>{currentVariant.barcode}</strong></div>}
 
             {productDetail.viewCount !== undefined && (
               <div>
-                <span>Lượt xem</span>
+                <span>{t("views")}</span>
 
                 <strong>{productDetail.viewCount}</strong>
               </div>
@@ -1003,11 +1024,11 @@ const ProductDetail = ({
 
             {productDetail.createdAt && (
               <div>
-                <span>Ngày tạo</span>
+                <span>{t("createdDate")}</span>
 
                 <strong>
                   {new Date(productDetail.createdAt).toLocaleDateString(
-                    "vi-VN",
+                    i18n.resolvedLanguage === "en" ? "en-US" : "vi-VN",
                   )}
                 </strong>
               </div>

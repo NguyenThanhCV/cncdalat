@@ -3,6 +3,7 @@ const r = require("express").Router(),
   { protect } = require("../middlewares/authMiddleware"),
   perm = require("../middlewares/permissionMiddleware"),
   P = require("../constants/permissions");
+r.get("/available", c.available);
 r.use(protect);
 r.get("/code/:code", perm(P.COUPON_READ), c.byCode);
 r.get("/", perm(P.COUPON_READ), c.list);

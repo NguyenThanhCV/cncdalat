@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import "./App.css";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import * as api from "./api/shop";
 import { unwrapList } from "./utils/shop";
 import DefaultLayout from "./Components/DefaultLayout";
@@ -10,10 +10,19 @@ import LegacyLogin from "./PagesClient/Login";
 import { WishlistPage, NotificationsPage, AddressesPage } from "./Components/Shop/CustomerPages";
 import { CartPage, CheckoutPage, OrdersPage, OrderDetailPage } from "./Components/Shop/ShoppingPages";
 import StorefrontSEO from "./Components/SEO";
+import MediaDisplay from "./Components/MediaDisplay";
 import "./storefront-polish.css";
 
 const StoreContext = createContext(null);
 const useStore = () => useContext(StoreContext);
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 function StoreProvider({ children }) {
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("user") || "null"));
@@ -94,7 +103,7 @@ function Account() {
     {notice.text && <div className={`account-notice ${notice.type}`} role="status">{notice.text}</div>}
 
     <form className="profile-form account-profile-form" onSubmit={submitProfile}>
-      <div className="account-form-heading"><div><h2>Thông tin tài khoản</h2><p>Email đăng nhập không thể thay đổi tại đây.</p></div>{form.avatar && <img className="account-avatar-preview" src={form.avatar} alt="Ảnh đại diện xem trước" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} />}</div>
+      <div className="account-form-heading"><div><h2>Thông tin tài khoản</h2><p>Email đăng nhập không thể thay đổi tại đây.</p></div>{form.avatar && <MediaDisplay className="account-avatar-preview" src={form.avatar} alt="Ảnh đại diện xem trước" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} />}</div>
       <label>Email<input type="email" disabled value={user?.email || ""} /></label>
       <label>Họ và tên *<input required autoComplete="name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
       <label>Số điện thoại<input type="tel" autoComplete="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="Ví dụ: 098 123 4567" /></label>
@@ -124,4 +133,4 @@ function Account() {
     </div>}
   </section>;
 }
-export default function App() { return <BrowserRouter><StoreProvider><StorefrontSEO /><Routes><Route path="/login" element={<LegacyLogin />} /><Route path="/register" element={<Login register />} /><Route path="/cart" element={<RequireAuth><Layout><CartPage /></Layout></RequireAuth>} /><Route path="/checkout" element={<RequireAuth><Layout><CheckoutPage /></Layout></RequireAuth>} /><Route path="/orders" element={<RequireAuth><Layout><OrdersPage /></Layout></RequireAuth>} /><Route path="/orders/:id" element={<RequireAuth><Layout><OrderDetailPage /></Layout></RequireAuth>} /><Route path="/wishlist" element={<RequireAuth><Layout><WishlistPage /></Layout></RequireAuth>} /><Route path="/notifications" element={<RequireAuth><Layout><NotificationsPage /></Layout></RequireAuth>} /><Route path="/addresses" element={<RequireAuth><Layout><AddressesPage /></Layout></RequireAuth>} /><Route path="/account" element={<RequireAuth><Layout><Account /></Layout></RequireAuth>} /><Route path="/*" element={<DefaultComponentToPage />} /></Routes></StoreProvider></BrowserRouter>; }
+export default function App() { return <BrowserRouter><ScrollToTop /><StoreProvider><StorefrontSEO /><Routes><Route path="/login" element={<LegacyLogin />} /><Route path="/register" element={<Login register />} /><Route path="/cart" element={<RequireAuth><Layout><CartPage /></Layout></RequireAuth>} /><Route path="/checkout" element={<RequireAuth><Layout><CheckoutPage /></Layout></RequireAuth>} /><Route path="/orders" element={<RequireAuth><Layout><OrdersPage /></Layout></RequireAuth>} /><Route path="/orders/:id" element={<RequireAuth><Layout><OrderDetailPage /></Layout></RequireAuth>} /><Route path="/wishlist" element={<RequireAuth><Layout><WishlistPage /></Layout></RequireAuth>} /><Route path="/notifications" element={<RequireAuth><Layout><NotificationsPage /></Layout></RequireAuth>} /><Route path="/addresses" element={<RequireAuth><Layout><AddressesPage /></Layout></RequireAuth>} /><Route path="/account" element={<RequireAuth><Layout><Account /></Layout></RequireAuth>} /><Route path="/*" element={<DefaultComponentToPage />} /></Routes></StoreProvider></BrowserRouter>; }

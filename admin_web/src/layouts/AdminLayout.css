@@ -14,6 +14,7 @@
   border-radius: 10px;
   flex: none;
 }
+.admin-logo > video { width:50px;height:50px;object-fit:contain;border-radius:10px;background:#fff; }
 
 .admin-logo > span { display: flex; flex-direction: column; gap: 4px; }
 .admin-logo > span strong { color: #fff; font-size: 14px; letter-spacing: .08em; }

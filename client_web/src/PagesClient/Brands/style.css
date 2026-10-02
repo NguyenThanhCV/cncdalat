@@ -355,6 +355,16 @@
 
   transition: transform 0.55s ease;
 }
+.brand-logo-initial {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 250, 238, .92);
+  font-size: clamp(54px, 8vw, 90px);
+  font-weight: 800;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, .28);
+}
 
 .brand-card:hover .brand-logo {
   transform: scale(1.07);

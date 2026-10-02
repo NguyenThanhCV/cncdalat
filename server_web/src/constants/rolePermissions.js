@@ -13,8 +13,6 @@ module.exports = {
     ...CRUD("wishlist"),
   ],
   staff: [
-    "user.read",
-    "user.status",
     ...CRUD("product"),
     ...CRUD("variant"),
     ...CRUD("category"),
@@ -33,9 +31,13 @@ module.exports = {
     "inventory.read",
     "inventory.adjust",
     "coupon.read",
-  ],
+    "promotion.read",
+    "siteMedia.read",
+  ].filter((permission) => !permission.endsWith(".create") && !permission.startsWith("user.")),
   manager: all.filter(
-    (x) => !["user.delete", "user.role", "user.permissions"].includes(x),
+    (permission) =>
+      !permission.endsWith(".create") &&
+      !["user.delete", "user.role", "user.permissions"].includes(permission),
   ),
   admin: all,
 };

@@ -862,3 +862,140 @@
     align-self: flex-end;
   }
 }
+
+/* Storefront sign-in refresh */
+.login-page {
+  min-height: 100svh;
+  padding: 76px 24px 36px;
+  background:
+    radial-gradient(ellipse at 4% 10%, rgba(70, 135, 91, .13), transparent 34%),
+    radial-gradient(ellipse at 96% 92%, rgba(183, 207, 146, .2), transparent 34%),
+    #f5f7f1;
+}
+.login-bg-circle-1 { background: rgba(49, 112, 70, .045); }
+.login-bg-circle-2 { background: rgba(139, 169, 98, .08); }
+.login-language { top: 20px; right: max(24px, calc((100vw - 1100px) / 2)); }
+.login-language .ant-btn { color: #41664b; border-color: rgba(43, 91, 57, .12); }
+.login-language .ant-btn:hover { color: #28613a; border-color: #a9c4a9; background: #fff; }
+.login-wrapper {
+  width: min(1040px, 100%);
+  min-height: 610px;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  border: 1px solid rgba(33, 72, 46, .07);
+  border-radius: 22px;
+  box-shadow: 0 28px 80px rgba(32, 62, 40, .12), 0 4px 16px rgba(32, 62, 40, .04);
+}
+.login-introduction {
+  padding: 48px 54px;
+  background: linear-gradient(145deg, #fff 0%, #f4f8f0 58%, #edf4e9 100%);
+}
+.login-brand-link { color: inherit; text-decoration: none; }
+.login-brand-link:hover { color: inherit; }
+.brand-logo { border-radius: 15px; box-shadow: 0 7px 18px rgba(30, 75, 44, .12); }
+.brand-name { color: #244b32; }
+.brand-subtitle { color: #748778; }
+.intro-badge { color: #28613a; background: #e9f2e7; }
+.intro-badge span { background: #4d8a54; }
+.intro-content h1 { color: #213d2b; font-size: clamp(34px, 3.5vw, 42px); }
+.intro-content h1 strong { color: #387647; }
+.intro-content > p { color: #68766a; }
+.feature-icon { color: #3d794b; background: #e8f2e6; }
+.login-card { padding: 48px 42px; }
+.login-icon { color: #357449; background: #edf5eb; }
+.login-card-header h2 { color: #243d2c; font-size: 27px; letter-spacing: -.4px; }
+.login-card-header p { color: #78857b; }
+.login-form .ant-form-item-label > label { color: #405448; }
+.login-form .ant-input-affix-wrapper { border-color: #dfe7df; background: #fbfcfa; }
+.login-form .ant-input-affix-wrapper:hover { border-color: #8eb295; }
+.login-form .ant-input-affix-wrapper-focused { border-color: #4d8759; box-shadow: 0 0 0 3px rgba(66, 126, 77, .11); }
+.login-form .ant-input-prefix { color: #839589; }
+.login-options .ant-checkbox-wrapper { color: #69766d; }
+.login-options .ant-checkbox-checked .ant-checkbox-inner { background-color: #39764a; border-color: #39764a; }
+.forgot-password,.register-area button { color: #337247; }
+.forgot-password:hover,.register-area button:hover { color: #235d35; }
+.login-submit .ant-btn { background: linear-gradient(135deg, #34764a, #4d925b); box-shadow: 0 8px 18px rgba(48, 112, 66, .2); }
+.login-submit .ant-btn:hover { background: linear-gradient(135deg, #28643c, #3d804d); box-shadow: 0 10px 24px rgba(48, 112, 66, .26); }
+.register-area { color: #78857b; }
+.login-footer { color: #a0aaa1; }
+.language-modal-content .ant-btn:hover,.language-modal-content .language-active { color: #337247; border-color: #a7c3a8; background: #edf5eb; }
+@media (max-width: 950px) {
+  .login-wrapper { width: 470px; min-height: 0; grid-template-columns: 1fr; }
+  .login-card { min-height: 0; padding: 48px 44px; }
+}
+@media (max-width: 600px) {
+  .login-page { align-items: center; padding: 76px 16px 24px; }
+  .login-language { top: 16px; right: 16px; }
+  .login-wrapper { width: 100%; margin-top: 0; border-radius: 18px; }
+  .login-card { padding: 36px 24px 30px; }
+  .login-card-header { margin-bottom: 24px; }
+  .login-card-header h2 { font-size: 24px; }
+  .login-form .ant-form-item { margin-bottom: 17px; }
+  .login-submit .ant-btn { height: 50px; }
+  .login-footer { flex-wrap: wrap; margin-top: 24px; }
+}
+
+/* Warm gold and orange storefront theme */
+.login-page {
+  background:
+    radial-gradient(ellipse at 6% 12%, rgba(244, 174, 54, .18), transparent 34%),
+    radial-gradient(ellipse at 94% 88%, rgba(232, 112, 48, .13), transparent 36%),
+    #fff9ef;
+}
+.login-bg-circle-1 { background: rgba(234, 158, 47, .09); }
+.login-bg-circle-2 { background: rgba(225, 111, 52, .08); }
+.login-wrapper {
+  border-color: rgba(166, 104, 39, .12);
+  box-shadow: 0 28px 80px rgba(117, 73, 31, .15), 0 4px 16px rgba(117, 73, 31, .05);
+}
+.login-introduction {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 240, .94) 0%, rgba(255, 248, 232, .88) 55%, rgba(255, 239, 216, .68) 100%),
+    #fff8e9;
+}
+.brand-name { color: #56371f; }
+.brand-subtitle { color: #9a795b; }
+.brand-logo { box-shadow: 0 7px 18px rgba(135, 86, 36, .16); }
+.intro-badge { color: #985315; background: #fff0d3; }
+.intro-badge span { background: #e69a2e; }
+.intro-content h1 { color: #493321; }
+.intro-content h1 strong { color: #d87525; }
+.intro-content > p { color: #806e5d; }
+.feature-icon { color: #bb6c1d; background: #fff0d7; }
+.login-language .ant-btn { color: #885321; border-color: rgba(151, 93, 31, .16); }
+.login-language .ant-btn:hover { color: #b75e1c; border-color: #e4b66b; }
+.login-icon { color: #c66b22; background: #fff0d7; }
+.login-card-header h2 { color: #493321; }
+.login-card-header p { color: #8a7867; }
+.login-form .ant-form-item-label > label { color: #594532; }
+.login-form .ant-input-affix-wrapper { border-color: #eadfce; background: #fffdf9; }
+.login-form .ant-input-affix-wrapper:hover { border-color: #e3b465; }
+.login-form .ant-input-affix-wrapper-focused { border-color: #d78932; box-shadow: 0 0 0 3px rgba(215, 137, 50, .13); }
+.login-form .ant-input-prefix { color: #b0987b; }
+.login-options .ant-checkbox-wrapper { color: #817260; }
+.login-options .ant-checkbox-checked .ant-checkbox-inner { background-color: #d77b25; border-color: #d77b25; }
+.forgot-password,.register-area button { color: #bd681f; }
+.forgot-password:hover,.register-area button:hover { color: #965018; }
+.login-submit .ant-btn { background: linear-gradient(120deg, #e6a332 0%, #e4772e 58%, #cf5c26 100%); box-shadow: 0 9px 20px rgba(202, 104, 35, .25); }
+.login-submit .ant-btn:hover { background: linear-gradient(120deg, #d89125 0%, #d96827 58%, #bc4e20 100%); box-shadow: 0 12px 24px rgba(202, 104, 35, .3); }
+.register-area { color: #8a7867; }
+.login-footer { color: #b2a18c; }
+.language-modal-content .ant-btn:hover,.language-modal-content .language-active { color: #a95d1d; border-color: #e7bf7a; background: #fff5e2; }
+.login-brand-link { width: max-content; max-width: 100%; flex: 0 0 auto; gap: 15px; }
+.login-brand-link .brand-logo { width: 72px; height: 72px; }
+.login-brand-link .brand-info { min-width: 0; }
+.login-brand-link .brand-name { color: #4f301b; font-size: 21px; line-height: 1.2; letter-spacing: .6px; white-space: nowrap; }
+.login-brand-link .brand-subtitle { color: #956c45; font-size: 10px; letter-spacing: 1.7px; }
+.login-card-brand { display: none; }
+@media (max-width: 950px) {
+  .login-card-brand { display: flex; width: max-content; max-width: 100%; margin: 0 auto 28px; gap: 12px; text-decoration: none; }
+  .login-card-brand .brand-logo { width: 58px; height: 58px; }
+  .login-card-brand .brand-info { min-width: 0; }
+  .login-card-brand .brand-name { color: #4f301b; font-size: clamp(16px, 4.5vw, 20px); line-height: 1.2; white-space: nowrap; }
+  .login-card-brand .brand-subtitle { color: #956c45; font-size: 9px; letter-spacing: 1.4px; }
+}
+@media (max-width: 360px) {
+  .login-card-brand { gap: 9px; }
+  .login-card-brand .brand-logo { width: 50px; height: 50px; }
+  .login-card-brand .brand-name { font-size: 15px; letter-spacing: 0; }
+  .login-card-brand .brand-subtitle { font-size: 8px; letter-spacing: 1px; }
+}

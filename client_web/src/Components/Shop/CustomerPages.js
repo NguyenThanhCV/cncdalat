@@ -3,11 +3,15 @@ import { Link } from "react-router-dom";
 import { CheckCircleFilled, DeleteOutlined, EnvironmentOutlined, EditOutlined, HeartFilled, HomeOutlined, PhoneOutlined, PlusOutlined } from "@ant-design/icons";
 import * as api from "../../api/shop";
 import { imageOf, money, unwrapList } from "../../utils/shop";
+import { localizedField } from "../../utils/localized";
+import { useTranslation } from "react-i18next";
+import MediaDisplay from "../MediaDisplay";
 
 const errorText = (e) => e?.response?.data?.message || "Không thể thực hiện thao tác";
 const emptyAddress = { fullName: "", phone: "", address: "", province: "", district: "", ward: "", note: "", isDefault: false };
 
 export function WishlistPage() {
+  const { t, i18n } = useTranslation();
   const [items, setItems] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
   const load = async () => { try { setItems(unwrapList(await api.getWishlist())); } catch (e) { setError(errorText(e)); } finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
@@ -16,11 +20,11 @@ export function WishlistPage() {
   return <section className="wishlist-page">
     <header className="wishlist-heading"><div><p className="eyebrow">DANH SÁCH ĐÃ LƯU</p><h1>Sản phẩm yêu thích</h1><p>Lưu lại sản phẩm bạn quan tâm để dễ tìm và xem lại sau.</p></div><span className="wishlist-count"><HeartFilled /> {items.length} sản phẩm</span></header>
     {error && <div className="form-error" role="alert">{error}</div>}
-    {items.length ? <div className="wishlist-grid">{items.map((product) => <article className="wishlist-card" key={product._id}>
-      <Link className="wishlist-card-image" to={`/products/${product._id}`}><img src={imageOf(product)} alt={product.name} loading="lazy" /><span className="wishlist-heart"><HeartFilled /></span></Link>
-      <button className="wishlist-remove" type="button" onClick={() => remove(product._id)} aria-label={`Bỏ yêu thích ${product.name}`} title="Bỏ yêu thích"><DeleteOutlined /></button>
-      <div className="wishlist-card-body"><small>{product.brand?.name || product.category?.name || "Nhà kính công nghệ cao Đà Lạt"}</small><Link className="wishlist-product-name" to={`/products/${product._id}`}><h2>{product.name}</h2></Link><strong>{product.price || product.displayPrice ? money(product.price || product.displayPrice) : "Chọn quy cách để xem giá"}</strong><Link className="wishlist-view-product" to={`/products/${product._id}`}>Xem sản phẩm <span>→</span></Link></div>
-    </article>)}</div> : <div className="wishlist-empty"><span><HeartFilled /></span><h2>Danh sách yêu thích đang trống</h2><p>Nhấn biểu tượng trái tim ở sản phẩm để lưu lại và xem tại đây.</p><Link to="/products">Khám phá sản phẩm <span>→</span></Link></div>}
+    {items.length ? <div className="wishlist-grid">{items.map((product) => { const name = localizedField(product, "name", i18n.language); const taxonomy = localizedField(product.brand, "name", i18n.language) || localizedField(product.category, "name", i18n.language) || "Nhà kính công nghệ cao Đà Lạt"; return <article className="wishlist-card" key={product._id}>
+      <Link className="wishlist-card-image" to={`/products/${product._id}`}><MediaDisplay src={imageOf(product)} alt={name} /><span className="wishlist-heart"><HeartFilled /></span></Link>
+      <button className="wishlist-remove" type="button" onClick={() => remove(product._id)} aria-label={`${t("removeFavorite")} ${name}`} title={t("removeFavorite")}><DeleteOutlined /></button>
+      <div className="wishlist-card-body"><small>{taxonomy}</small><Link className="wishlist-product-name" to={`/products/${product._id}`}><h2>{name}</h2></Link><strong>{product.price || product.displayPrice ? money(product.price || product.displayPrice) : t("selectVariantForPrice")}</strong><Link className="wishlist-view-product" to={`/products/${product._id}`}>{t("viewProduct")} <span>→</span></Link></div>
+    </article>; })}</div> : <div className="wishlist-empty"><span><HeartFilled /></span><h2>{t("wishlistEmpty")}</h2><p>{t("wishlistEmptyDescription")}</p><Link to="/products">{t("exploreProducts")} <span>→</span></Link></div>}
   </section>;
 }
 

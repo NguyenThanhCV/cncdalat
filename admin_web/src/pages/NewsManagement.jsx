@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import MediaPreview from '../components/MediaPreview';
 import { Page, Btn, Danger, Modal, Table } from "../components/UI";
 import { newsArticles, newsCategories } from "../api";
+import { canAdmin } from "../utils/adminPermissions";
 
 const unwrap = (response) => response?.data?.data ?? response?.data ?? response;
 const slugify = (value) =>
@@ -21,9 +23,12 @@ const dateInput = (value) =>
   value ? new Date(value).toISOString().slice(0, 16) : "";
 const emptyArticle = {
   title: "",
+  titleEn: "",
   slug: "",
   excerpt: "",
+  excerptEn: "",
   content: "",
+  contentEn: "",
   coverImage: "",
   category: "",
   tags: "",
@@ -33,8 +38,10 @@ const emptyArticle = {
 };
 const emptyCategory = {
   name: "",
+  nameEn: "",
   slug: "",
   description: "",
+  descriptionEn: "",
   coverImage: "",
   sortOrder: 0,
   status: "active",
@@ -175,9 +182,12 @@ export default function NewsManagement() {
       if (modal === "article") {
         const data = {
           title: form.title,
+          titleEn: form.titleEn || "",
           slug: slugify(form.slug || form.title),
           excerpt: form.excerpt,
+          excerptEn: form.excerptEn || "",
           content: form.content,
+          contentEn: form.contentEn || "",
           coverImage: form.coverImage || "",
           category: form.category,
           tags: String(form.tags || "")
@@ -196,8 +206,10 @@ export default function NewsManagement() {
       } else {
         const data = {
           name: form.name,
+          nameEn: form.nameEn || "",
           slug: slugify(form.slug || form.name),
           description: form.description || "",
+          descriptionEn: form.descriptionEn || "",
           coverImage: form.coverImage || "",
           sortOrder: Number(form.sortOrder) || 0,
           status: form.status || "active",
@@ -252,7 +264,7 @@ export default function NewsManagement() {
       label: "Bài viết",
       render: (row) => (
         <div className="news-admin-title">
-          {row.coverImage && <img src={row.coverImage} alt="" />}
+          {row.coverImage && <MediaPreview src={row.coverImage} alt="" />}
           <div>
             <b>{row.title}</b>
             <small>/{row.slug}</small>
@@ -308,8 +320,8 @@ export default function NewsManagement() {
               Xem
             </Btn>
           )}
-          <Btn onClick={() => startEditArticle(row)}>Sửa</Btn>
-          <Danger onClick={() => removeArticle(row)}>Xóa</Danger>
+          {canAdmin("newsArticle.update") && <Btn onClick={() => startEditArticle(row)}>Sửa</Btn>}
+          {canAdmin("newsArticle.delete") && <Danger onClick={() => removeArticle(row)}>Xóa</Danger>}
         </span>
       ),
     },
@@ -341,8 +353,8 @@ export default function NewsManagement() {
       label: "Thao tác",
       render: (row) => (
         <span className="actions">
-          <Btn onClick={() => startEditCategory(row)}>Sửa</Btn>
-          <Danger onClick={() => removeCategory(row)}>Xóa</Danger>
+          {canAdmin("newsCategory.update") && <Btn onClick={() => startEditCategory(row)}>Sửa</Btn>}
+          {canAdmin("newsCategory.delete") && <Danger onClick={() => removeCategory(row)}>Xóa</Danger>}
         </span>
       ),
     },
@@ -351,7 +363,7 @@ export default function NewsManagement() {
   return (
     <Page
       title="Quản lý tin tức"
-      actions={
+      actions={canAdmin(tab === "articles" ? "newsArticle.create" : "newsCategory.create") &&
         <Btn
           onClick={
             tab === "articles" ? startCreateArticle : startCreateCategory
@@ -444,6 +456,14 @@ export default function NewsManagement() {
                     }
                   />
                 </label>
+                <label className="full">
+                  Tiêu đề (English)
+                  <input
+                    maxLength={180}
+                    value={form.titleEn || ""}
+                    onChange={(e) => setForm({ ...form, titleEn: e.target.value })}
+                  />
+                </label>
                 <label>
                   Đường dẫn (slug) *
                   <input
@@ -484,6 +504,24 @@ export default function NewsManagement() {
                   />
                 </label>
                 <label className="full">
+                  Mô tả ngắn (English)
+                  <textarea
+                    maxLength={360}
+                    rows={3}
+                    value={form.excerptEn || ""}
+                    onChange={(e) => setForm({ ...form, excerptEn: e.target.value })}
+                  />
+                </label>
+                <label className="full">
+                  Nội dung bài viết (English)
+                  <textarea
+                    rows={12}
+                    value={form.contentEn || ""}
+                    onChange={(e) => setForm({ ...form, contentEn: e.target.value })}
+                    placeholder="Separate paragraphs with a blank line."
+                  />
+                </label>
+                <label className="full">
                   Nội dung bài viết *
                   <textarea
                     required
@@ -496,18 +534,18 @@ export default function NewsManagement() {
                   />
                 </label>
                 <label className="full">
-                  Ảnh bìa (URL)
+                  Ảnh/video bìa (URL riêng của bài viết)
                   <input
                     type="url"
                     value={form.coverImage || ""}
                     onChange={(e) =>
                       setForm({ ...form, coverImage: e.target.value })
                     }
-                    placeholder="https://…"
+                    placeholder="URL ảnh hoặc video trực tiếp"
                   />
                 </label>
                 {form.coverImage && (
-                  <img
+                  <MediaPreview
                     className="news-admin-preview full"
                     src={form.coverImage}
                     alt="Xem trước ảnh bìa"
@@ -574,6 +612,14 @@ export default function NewsManagement() {
                   />
                 </label>
                 <label>
+                  Tên danh mục (English)
+                  <input
+                    maxLength={80}
+                    value={form.nameEn || ""}
+                    onChange={(e) => setForm({ ...form, nameEn: e.target.value })}
+                  />
+                </label>
+                <label>
                   Slug *
                   <input
                     required
@@ -595,13 +641,23 @@ export default function NewsManagement() {
                   />
                 </label>
                 <label className="full">
-                  Ảnh đại diện (URL)
+                  Mô tả (English)
+                  <textarea
+                    rows={3}
+                    maxLength={240}
+                    value={form.descriptionEn || ""}
+                    onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })}
+                  />
+                </label>
+                <label className="full">
+                  Ảnh/video đại diện (URL riêng của bài viết)
                   <input
                     type="url"
                     value={form.coverImage || ""}
                     onChange={(e) =>
                       setForm({ ...form, coverImage: e.target.value })
                     }
+                    placeholder="URL ảnh hoặc video trực tiếp"
                   />
                 </label>
                 <label>

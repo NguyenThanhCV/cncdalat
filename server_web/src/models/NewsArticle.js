@@ -2,9 +2,12 @@ const mongoose = require("mongoose");
 
 const schema = new mongoose.Schema({
   title: { type: String, required: true, trim: true, maxlength: 180 },
+  titleEn: { type: String, trim: true, maxlength: 180, default: "" },
   slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
   excerpt: { type: String, required: true, trim: true, maxlength: 360 },
+  excerptEn: { type: String, trim: true, maxlength: 360, default: "" },
   content: { type: String, required: true },
+  contentEn: { type: String, default: "" },
   coverImage: { type: String, default: "" },
   category: { type: mongoose.Schema.Types.ObjectId, ref: "NewsCategory", required: true, index: true },
   author: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },

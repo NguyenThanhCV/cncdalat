@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowUpOutlined,
   EnvironmentOutlined,
@@ -9,9 +10,10 @@ import {
   FacebookOutlined,
 } from "@ant-design/icons";
 import "./index.css";
+import MediaDisplay from "../MediaDisplay";
+import useSiteMedia from "../../hooks/useSiteMedia";
 
 const STORE = {
-  name: "Nhà kính công nghệ cao Đà Lạt",
   phone: process.env.REACT_APP_STORE_PHONE || "0888004044",
   phoneLink: `tel:${(process.env.REACT_APP_STORE_PHONE || "0888004044").replaceAll(" ", "")}`,
   email: process.env.REACT_APP_STORE_EMAIL || "congtynhakinhcongnghecaodalat@gmail.com",
@@ -25,6 +27,9 @@ const FooterLink = ({ to, children }) => (
 );
 
 export default function FooterPage() {
+  const { t } = useTranslation();
+  const storeName = t("storeName");
+  const storeLogo = useSiteMedia("store-logo");
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
@@ -41,49 +46,49 @@ export default function FooterPage() {
       <div className="footer-main">
         <div className="footer-container">
           <div className="footer-grid">
-            <section className="footer-column footer-company" aria-label="Thông tin cửa hàng">
-              <Link to="/" className="footer-logo" aria-label="Nhà kính công nghệ cao Đà Lạt - Trang chủ">
-                <img className="footer-logo-image" src="/nha-kinh-cong-nghe-cao-da-lat.jpg" alt="Logo Nhà kính công nghệ cao Đà Lạt" />
-                <span className="footer-logo-text"><strong>NHÀ KÍNH ĐÀ LẠT</strong><span>VẬT TƯ NHÀ KÍNH</span></span>
+            <section className="footer-column footer-company" aria-label={t("footerStoreInfo")}>
+              <Link to="/" className="footer-logo" aria-label={`${storeName} - ${t("home")}`}>
+                {storeLogo?.mediaUrl && <MediaDisplay className="footer-logo-image" src={storeLogo.mediaUrl} mediaType={storeLogo.mediaType} alt={storeLogo.altText || `${t("logoOf")} ${storeName}`} />}
+                <span className="footer-logo-text"><strong>NHÀ KÍNH ĐÀ LẠT</strong><span>{t("footerBrandSubtitle")}</span></span>
               </Link>
-              <p className="footer-description">Cung cấp vật tư nhà kính, thiết bị tưới và sản phẩm phục vụ sản xuất nông nghiệp hiện đại.</p>
+              <p className="footer-description">{t("footerDescription")}</p>
               <address className="footer-contact-list">
-                <a href={STORE.phoneLink}><span className="footer-contact-icon"><PhoneOutlined /></span><span><small>Hotline tư vấn</small><strong>{STORE.phone}</strong></span></a>
+                <a href={STORE.phoneLink}><span className="footer-contact-icon"><PhoneOutlined /></span><span><small>{t("footerHotline")}</small><strong>{STORE.phone}</strong></span></a>
                 <a href={`mailto:${STORE.email}`}><span className="footer-contact-icon"><MailOutlined /></span><span><small>Email</small><strong>{STORE.email}</strong></span></a>
-                <a href={STORE.mapUrl} target="_blank" rel="noreferrer" className="footer-contact-item"><span className="footer-contact-icon"><EnvironmentOutlined /></span><span><small>Địa chỉ công ty · Google Maps</small><strong>Xem vị trí cửa hàng ↗</strong></span></a>
+                <a href={STORE.mapUrl} target="_blank" rel="noreferrer" className="footer-contact-item"><span className="footer-contact-icon"><EnvironmentOutlined /></span><span><small>{t("footerCompanyAddress")}</small><strong>{t("footerViewLocation")}</strong></span></a>
               </address>
             </section>
 
-            <nav className="footer-column" aria-label="Khám phá cửa hàng">
-              <h2>Khám phá cửa hàng</h2>
+            <nav className="footer-column" aria-label={t("footerExploreStore")}>
+              <h2>{t("footerExploreStore")}</h2>
               <ul>
-                <FooterLink to="/products">Tất cả sản phẩm</FooterLink>
-                <FooterLink to="/products?featured=true">Sản phẩm nổi bật</FooterLink>
-                <FooterLink to="/categories">Danh mục sản phẩm</FooterLink>
-                <FooterLink to="/brands">Thương hiệu</FooterLink>
-                <FooterLink to="/news">Tin tức nhà vườn</FooterLink>
-                <FooterLink to="/about">Về Nhà kính công nghệ cao Đà Lạt</FooterLink>
+                <FooterLink to="/products">{t("footerAllProducts")}</FooterLink>
+                <FooterLink to="/products?featured=true">{t("footerFeaturedProducts")}</FooterLink>
+                <FooterLink to="/categories">{t("footerProductCategories")}</FooterLink>
+                <FooterLink to="/brands">{t("footerBrands")}</FooterLink>
+                <FooterLink to="/news">{t("footerGardenNews")}</FooterLink>
+                <FooterLink to="/about">{t("footerAbout")}</FooterLink>
               </ul>
             </nav>
 
-            <nav className="footer-column" aria-label="Hỗ trợ khách hàng">
-              <h2>Hỗ trợ khách hàng</h2>
+            <nav className="footer-column" aria-label={t("footerCustomerSupport")}>
+              <h2>{t("footerCustomerSupport")}</h2>
               <ul>
-                <FooterLink to="/faq">Câu hỏi thường gặp</FooterLink>
-                <FooterLink to="/contact">Liên hệ tư vấn</FooterLink>
-                <FooterLink to="/login">Đăng nhập / Tạo tài khoản</FooterLink>
-                <FooterLink to="/account">Tài khoản của tôi</FooterLink>
-                <FooterLink to="/orders">Theo dõi đơn hàng</FooterLink>
+                <FooterLink to="/faq">{t("footerFaq")}</FooterLink>
+                <FooterLink to="/contact">{t("footerContactAdvice")}</FooterLink>
+                <FooterLink to="/login">{t("footerLoginRegister")}</FooterLink>
+                <FooterLink to="/account">{t("footerMyAccount")}</FooterLink>
+                <FooterLink to="/orders">{t("footerTrackOrders")}</FooterLink>
               </ul>
             </nav>
 
             <section className="footer-column footer-advice">
-              <h2>Cần tư vấn trước khi mua?</h2>
-              <p>Gửi tên hoặc mã sản phẩm cùng quy cách bạn cần. Nhà kính công nghệ cao Đà Lạt sẽ hỗ trợ kiểm tra lựa chọn và thông tin giao hàng.</p>
-              <a className="footer-advice-phone" href={STORE.phoneLink}><PhoneOutlined /> Gọi {STORE.phone}</a>
+              <h2>{t("footerNeedAdvice")}</h2>
+              <p>{t("footerAdviceText")}</p>
+              <a className="footer-advice-phone" href={STORE.phoneLink}><PhoneOutlined /> {t("footerCall")} {STORE.phone}</a>
               <a className="footer-advice-email" href={`mailto:${STORE.email}`}>{STORE.email}</a>
-              <div className="footer-follow"><span>Theo dõi Nhà kính công nghệ cao Đà Lạt</span><div className="footer-social"><a href={STORE.facebookUrl} target="_blank" rel="noreferrer" aria-label="Facebook Vật tư nông nghiệp Nhà kính công nghệ cao Đà Lạt"><FacebookOutlined /></a><a className="footer-tiktok" href={STORE.tiktokUrl} target="_blank" rel="noreferrer" aria-label="TikTok Nhà kính Lâm Đồng">♪</a></div></div>
-              <small>Phí giao hàng được xác nhận theo địa chỉ và chưa tính tự động trên website.</small>
+              <div className="footer-follow"><span>{t("footerFollow")}</span><div className="footer-social"><a href={STORE.facebookUrl} target="_blank" rel="noreferrer" aria-label={t("footerFacebookLabel")}><FacebookOutlined /></a><a className="footer-tiktok" href={STORE.tiktokUrl} target="_blank" rel="noreferrer" aria-label={t("footerTiktokLabel")}>♪</a></div></div>
+              <small>{t("footerShippingNote")}</small>
             </section>
           </div>
         </div>
@@ -91,21 +96,21 @@ export default function FooterPage() {
 
       <div className="footer-service">
         <div className="footer-container footer-service-grid">
-          <div className="footer-service-item"><span className="footer-service-number">01</span><div><strong>Tư vấn đúng nhu cầu</strong><span>Hỗ trợ chọn sản phẩm và quy cách</span></div></div>
-          <div className="footer-service-item"><span className="footer-service-number">02</span><div><strong>Giá theo phiên bản</strong><span>Xem giá sau khi chọn thuộc tính</span></div></div>
-          <div className="footer-service-item"><span className="footer-service-number">03</span><div><strong>Kiểm tra tồn kho</strong><span>Hệ thống xác nhận khi đặt hàng</span></div></div>
-          <div className="footer-service-item"><span className="footer-service-number">04</span><div><strong>Hỗ trợ giao hàng</strong><span>Liên hệ để xác nhận phí vận chuyển</span></div></div>
+          <div className="footer-service-item"><span className="footer-service-number">01</span><div><strong>{t("footerServiceAdvice")}</strong><span>{t("footerServiceAdviceText")}</span></div></div>
+          <div className="footer-service-item"><span className="footer-service-number">02</span><div><strong>{t("footerServicePrice")}</strong><span>{t("footerServicePriceText")}</span></div></div>
+          <div className="footer-service-item"><span className="footer-service-number">03</span><div><strong>{t("footerServiceStock")}</strong><span>{t("footerServiceStockText")}</span></div></div>
+          <div className="footer-service-item"><span className="footer-service-number">04</span><div><strong>{t("footerServiceDelivery")}</strong><span>{t("footerServiceDeliveryText")}</span></div></div>
         </div>
       </div>
 
       <div className="footer-bottom">
         <div className="footer-container footer-bottom-inner">
-          <p>© {new Date().getFullYear()} <strong>{STORE.name}</strong>. Đã đăng ký bản quyền.</p>
-          <nav className="footer-bottom-links" aria-label="Chính sách"><Link to="/privacy">Quyền riêng tư</Link><span aria-hidden="true">·</span><Link to="/terms">Điều khoản sử dụng</Link><span aria-hidden="true">·</span><Link to="/contact">Liên hệ</Link></nav>
+          <p>© {new Date().getFullYear()} <strong>{storeName}</strong>. {t("footerCopyright")}</p>
+          <nav className="footer-bottom-links" aria-label={t("footerCustomerSupport")}><Link to="/privacy">{t("footerPrivacy")}</Link><span aria-hidden="true">·</span><Link to="/terms">{t("footerTerms")}</Link><span aria-hidden="true">·</span><Link to="/contact">{t("footerContact")}</Link></nav>
         </div>
       </div>
 
-      {showBackToTop && <button type="button" className="footer-back-top" onClick={scrollToTop} aria-label="Lên đầu trang"><ArrowUpOutlined /></button>}
+      {showBackToTop && <button type="button" className="footer-back-top" onClick={scrollToTop} aria-label={t("footerBackToTop")}><ArrowUpOutlined /></button>}
     </footer>
   );
 }

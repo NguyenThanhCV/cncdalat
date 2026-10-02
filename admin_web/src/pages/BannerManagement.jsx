@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Page, Table, Btn, Danger, Modal } from '../components/UI';
 import { banners } from '../api';
+import MediaPreview from '../components/MediaPreview';
+import { canAdmin } from '../utils/adminPermissions';
 
 const unwrap = (response) => response?.data?.data ?? response?.data ?? response;
 const pageOptions = [
@@ -9,7 +11,7 @@ const pageOptions = [
   ['privacy','Quyền riêng tư'],['terms','Điều khoản'],['cart','Giỏ hàng'],['checkout','Thanh toán'],['orders','Đơn hàng'],
   ['order-detail','Chi tiết đơn hàng'],['wishlist','Sản phẩm yêu thích'],['notifications','Thông báo'],['addresses','Địa chỉ nhận hàng'],['account','Tài khoản'],['general','Trang khác'],
 ];
-const empty = { name:'', pageKey:'home', imageUrl:'', mobileImageUrl:'', altText:'', eyebrow:'', title:'', description:'', buttonText:'', buttonLink:'', status:'active', sortOrder:1, startsAt:'', endsAt:'', textPosition:'left', overlayOpacity:0.48 };
+const empty = { name:'', pageKey:'home', imageUrl:'', mobileImageUrl:'', mediaType:'image', mobileMediaType:'image', altText:'', eyebrow:'', title:'', description:'', buttonText:'', buttonLink:'', status:'active', sortOrder:1, startsAt:'', endsAt:'', textPosition:'left', overlayOpacity:0.48 };
 const dateInput = (value) => value ? new Date(value).toISOString().slice(0,16) : '';
 const dateOut = (value) => value ? new Date(value).toISOString() : null;
 const displayDate = (value) => value ? new Date(value).toLocaleString('vi-VN') : 'Không giới hạn';
@@ -41,7 +43,7 @@ export default function BannerManagement() {
   };
   const save = async (event) => {
     event.preventDefault(); setError(''); setNotice(''); setSaving(true);
-    const data={name:form.name,pageKey:form.pageKey,imageUrl:form.imageUrl,mobileImageUrl:form.mobileImageUrl||'',altText:form.altText||form.title||form.name,eyebrow:form.eyebrow||'',title:form.title||'',description:form.description||'',buttonText:form.buttonText||'',buttonLink:form.buttonLink||'',status:form.status,sortOrder:Math.max(0,Number(form.sortOrder)||0),startsAt:dateOut(form.startsAt),endsAt:dateOut(form.endsAt),textPosition:form.textPosition,overlayOpacity:Math.min(.9,Math.max(0,Number(form.overlayOpacity)||0))};
+    const data={name:form.name,pageKey:form.pageKey,imageUrl:form.imageUrl,mobileImageUrl:form.mobileImageUrl||'',mediaType:form.mediaType||'image',mobileMediaType:form.mobileMediaType||'image',altText:form.altText||form.title||form.name,eyebrow:form.eyebrow||'',title:form.title||'',description:form.description||'',buttonText:form.buttonText||'',buttonLink:form.buttonLink||'',status:form.status,sortOrder:Math.max(0,Number(form.sortOrder)||0),startsAt:dateOut(form.startsAt),endsAt:dateOut(form.endsAt),textPosition:form.textPosition,overlayOpacity:Math.min(.9,Math.max(0,Number(form.overlayOpacity)||0))};
     if(data.buttonText && !data.buttonLink) { setError('Hãy nhập đường dẫn cho nút CTA.'); setSaving(false); return; }
     if(data.startsAt && data.endsAt && new Date(data.endsAt) < new Date(data.startsAt)) { setError('Thời gian kết thúc phải sau thời gian bắt đầu.'); setSaving(false); return; }
     try { if(editingId) await banners.update(editingId,data); else await banners.create(data); setOpen(false); setNotice('Đã lưu banner vào cơ sở dữ liệu.'); await load(); }
@@ -51,18 +53,18 @@ export default function BannerManagement() {
   const remove = async (row) => { if(!window.confirm(`Xóa banner “${row.name}”?`)) return; setError(''); try { await banners.remove(row._id); setNotice('Đã xóa banner.'); await load(); } catch(e) { setError(e?.response?.data?.message || 'Không xóa được banner.'); } };
 
   const columns=[
-    {key:'imageUrl',label:'Xem trước',render:(row)=><img className="banner-admin-thumb" src={row.imageUrl} alt={row.altText||row.name}/>},
+    {key:'imageUrl',label:'Xem trước',render:(row)=><MediaPreview className="banner-admin-thumb" src={row.imageUrl} mediaType={row.mediaType} alt={row.altText||row.name}/>},
     {key:'name',label:'Banner',render:(row)=><div><b>{row.name}</b><small className="muted">{row.title}</small></div>},
     {key:'pageKey',label:'Trang',render:(row)=>pageOptions.find(([key])=>key===row.pageKey)?.[1]||row.pageKey},
     {key:'sortOrder',label:'Vị trí'},
     {key:'status',label:'Trạng thái',render:(row)=><span className={`banner-admin-status ${row.status}`}>{row.status==='active'?'Đang hiển thị':'Đã ẩn'}</span>},
     {key:'schedule',label:'Lịch hiển thị',render:(row)=><small>Từ {displayDate(row.startsAt)}<br/>Đến {displayDate(row.endsAt)}</small>},
-    {key:'actions',label:'Thao tác',render:(row)=><span className="actions"><Btn onClick={()=>openEdit(row)}>Sửa</Btn><Danger onClick={()=>remove(row)}>Xóa</Danger></span>},
+    {key:'actions',label:'Thao tác',render:(row)=><span className="actions">{canAdmin('banner.update')&&<Btn onClick={()=>openEdit(row)}>Sửa</Btn>}{canAdmin('banner.delete')&&<Danger onClick={()=>remove(row)}>Xóa</Danger>}</span>},
   ];
   const activeCount=rows.filter((row)=>row.status==='active').length;
   const pageCount=new Set(rows.map((row)=>row.pageKey)).size;
 
-  return <Page title="Quản lý Banner" actions={<Btn onClick={openCreate}>+ Tạo banner</Btn>}>
+  return <Page title="Quản lý Banner" actions={canAdmin('banner.create')&&<Btn onClick={openCreate}>+ Tạo banner</Btn>}>
     <div className="banner-admin-stats"><div><span>Tổng banner</span><b>{rows.length}</b></div><div><span>Đang hiển thị</span><b>{activeCount}</b></div><div><span>Trang có banner</span><b>{pageCount}</b></div><div><span>Trang hỗ trợ</span><b>{pageOptions.length-1}</b></div></div>
     <div className="banner-admin-help">Mỗi banner gắn với một trang cụ thể. Banner có thể sắp xếp theo thứ tự và hẹn giờ bắt đầu/kết thúc; banner không hoạt động hoặc ngoài lịch sẽ không hiện ở cửa hàng.</div>
     {notice&&<div className="success banner-admin-alert">{notice}</div>}{error&&!open&&<div className="errorbox banner-admin-alert">{error}<Btn onClick={load}>Thử lại</Btn></div>}
@@ -72,9 +74,11 @@ export default function BannerManagement() {
       {error&&<div className="errorbox full">{error}</div>}
       <label>Tên quản trị *<input required maxLength={120} value={form.name} onChange={(e)=>setForm({...form,name:e.target.value})} placeholder="Ví dụ: Trang chủ · Bộ sưu tập hè"/></label>
       <label>Hiển thị ở trang *<select required value={form.pageKey} onChange={(e)=>setForm({...form,pageKey:e.target.value})}>{pageOptions.map(([key,label])=><option value={key} key={key}>{label}</option>)}</select></label>
-      <label className="full">Ảnh desktop (URL) *<input required type="url" value={form.imageUrl} onChange={(e)=>setForm({...form,imageUrl:e.target.value})} placeholder="https://…"/></label>
-      <label className="full">Ảnh mobile (URL, tùy chọn)<input type="url" value={form.mobileImageUrl} onChange={(e)=>setForm({...form,mobileImageUrl:e.target.value})} placeholder="Để trống để dùng ảnh desktop"/></label>
-      {form.imageUrl&&<img className="banner-admin-preview full" src={form.imageUrl} alt="Xem trước ảnh banner"/>}
+      <label>Loại media<select value={form.mediaType||'image'} onChange={(e)=>setForm({...form,mediaType:e.target.value})}><option value="image">Hình ảnh</option><option value="video">Video</option></select></label>
+      <label className="full">URL media desktop *<input required type="url" value={form.imageUrl} onChange={(e)=>setForm({...form,imageUrl:e.target.value})} placeholder="URL ảnh, MP4, YouTube hoặc Vimeo"/></label>
+      <label className="full">URL ảnh/video mobile (tùy chọn)<input type="url" value={form.mobileImageUrl} onChange={(e)=>setForm({...form,mobileImageUrl:e.target.value})} placeholder="Để trống để dùng media desktop"/></label>
+      {form.mobileImageUrl&&<><label>Loại media mobile<select value={form.mobileMediaType||'image'} onChange={(e)=>setForm({...form,mobileMediaType:e.target.value})}><option value="image">Tự nhận diện / ảnh</option><option value="video">Video</option></select></label><MediaPreview className="banner-admin-preview full" src={form.mobileImageUrl} mediaType={form.mobileMediaType} alt="Xem trước media mobile"/></>}
+      {form.imageUrl&&<MediaPreview className="banner-admin-preview full" src={form.imageUrl} mediaType={form.mediaType} alt="Xem trước banner"/>}
       <label>Nhãn nhỏ<input maxLength={80} value={form.eyebrow} onChange={(e)=>setForm({...form,eyebrow:e.target.value})} placeholder="ƯU ĐÃI MÙA VỤ"/></label>
       <label>Alt ảnh<input maxLength={180} value={form.altText} onChange={(e)=>setForm({...form,altText:e.target.value})}/></label>
       <label className="full">Tiêu đề chính<input maxLength={180} value={form.title} onChange={(e)=>setForm({...form,title:e.target.value})}/></label>

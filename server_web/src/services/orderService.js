@@ -5,6 +5,7 @@ const Order = require("../models/Order"),
   Product = require("../models/Product"),
   Address = require("../models/Address"),
   Coupon = require("../models/Coupon"),
+  Promotion = require("../models/Promotion"),
   CouponRedemption = require("../models/CouponRedemption"),
   AppError = require("../utils/AppError");
 const num = (x) => Math.max(Number(x) || 0, 0);
@@ -51,7 +52,14 @@ exports.create = async (
     .populate("items.variant");
   if (!cart || !cart.items.length) throw new AppError("Cart trống", 400);
   let subtotal = 0;
+  let promotionDiscount = 0;
   const lines = [];
+  const now = new Date();
+  const promotions = await Promotion.find({ status: "active", $and: [
+    { $or: [{ startDate: { $exists: false } }, { startDate: null }, { startDate: { $lte: now } }] },
+    { $or: [{ endDate: { $exists: false } }, { endDate: null }, { endDate: { $gte: now } }] },
+  ] }).sort({ updatedAt: -1 });
+  const priority = { product: 3, category: 2, brand: 1 };
   for (const x of cart.items) {
     const v = await Variant.findById(x.variant);
     const p = await Product.findById(x.product);
@@ -60,10 +68,20 @@ exports.create = async (
     const available = v.stock - v.reservedStock;
     if (available < x.quantity)
       throw new AppError(`Không đủ tồn kho cho ${p.name}`, 400);
-    const price = num(v.price),
-      total = price * x.quantity;
-    subtotal += total;
-    lines.push({ product: p, variant: v, quantity: x.quantity, price, total });
+    const originalPrice = num(v.price);
+    const matches = (values, id) => (values || []).some((value) => String(value) === String(id));
+    const promo = promotions.filter((item) =>
+      item.scope === "product" ? matches(item.productIds, p._id) :
+      item.scope === "category" ? matches(item.categoryIds, p.category) :
+      item.scope === "brand" ? matches(item.brandIds, p.brand) : false
+    ).sort((a, b) => priority[b.scope] - priority[a.scope])[0];
+    let unitDiscount = promo ? (promo.type === "percent" ? originalPrice * promo.value / 100 : promo.value) : 0;
+    unitDiscount = Math.round(Math.max(0, Math.min(unitDiscount, originalPrice)));
+    const price = originalPrice - unitDiscount;
+    const total = price * x.quantity;
+    subtotal += originalPrice * x.quantity;
+    promotionDiscount += unitDiscount * x.quantity;
+    lines.push({ product: p, variant: v, quantity: x.quantity, price, unitDiscount, total });
   }
   let discount = 0,
     coupon = null;
@@ -87,13 +105,24 @@ exports.create = async (
       coupon.usedCount >= coupon.usageLimit
     )
       throw new AppError("Coupon đã hết lượt sử dụng", 400);
+    const asIds = (values) => (values || []).map(String);
+    const eligibleLines = lines.filter((line) => {
+      const productId = String(line.product._id);
+      const categoryId = String(line.product.category || "");
+      if (asIds(coupon.excludedProducts).includes(productId)) return false;
+      const productRules = asIds(coupon.applicableProducts);
+      const categoryRules = asIds(coupon.applicableCategories);
+      if (!productRules.length && !categoryRules.length) return true;
+      return productRules.includes(productId) || categoryRules.includes(categoryId);
+    });
+    const couponBase = eligibleLines.reduce((sum, line) => sum + line.price * line.quantity, 0);
     discount =
       coupon.type === "percentage"
-        ? (subtotal * coupon.value) / 100
-        : coupon.value;
+      ? (couponBase * coupon.value) / 100
+      : coupon.value;
     if (coupon.maxDiscount != null)
       discount = Math.min(discount, coupon.maxDiscount);
-    discount = Math.min(discount, subtotal);
+    discount = Math.min(discount, couponBase);
   }
   const order = await Order.create({
     orderNumber: orderNo(),
@@ -102,7 +131,8 @@ exports.create = async (
     address: address.toObject(),
     subtotal,
     discount,
-    total: subtotal - discount,
+    promotionDiscount,
+    total: subtotal - promotionDiscount - discount,
     coupon: coupon ? coupon._id : null,
     paymentMethod,
     note,
@@ -147,7 +177,7 @@ exports.create = async (
         image: l.variant.thumbnail || l.product.thumbnail,
         price: l.price,
         quantity: l.quantity,
-        discount: 0,
+        discount: l.unitDiscount,
         total: l.total,
       });
     }
@@ -268,23 +298,13 @@ exports.cancel = async (id, user, admin = false) => {
 exports.remove = async (id) => {
   const o = await Order.findById(id);
   if (!o) throw new AppError("Order không tồn tại", 404);
-  if (!["cancelled", "refunded"].includes(o.orderStatus)) {
-    const items = await OrderItem.find({ order: id });
-    await Promise.all(
-      items.map((item) =>
-        Variant.updateOne(
-          { _id: item.variant },
-          { $inc: { stock: item.quantity } },
-        ),
-      ),
-    );
-  }
-  if (o.coupon && o.orderStatus !== "cancelled")
+  if (!["cancelled", "refunded"].includes(o.orderStatus))
+    throw new AppError("Chỉ có thể xóa đơn đã hủy hoặc hoàn tiền", 409);
+  if (o.coupon && o.orderStatus !== "cancelled") {
     await Coupon.updateOne(
       { _id: o.coupon, usedCount: { $gt: 0 } },
       { $inc: { usedCount: -1 } },
     );
-  if (o.coupon && o.orderStatus !== "cancelled") {
     const redemption = await CouponRedemption.findOneAndUpdate(
       { coupon: o.coupon, user: o.user, count: { $gt: 0 } },
       { $inc: { count: -1 } },

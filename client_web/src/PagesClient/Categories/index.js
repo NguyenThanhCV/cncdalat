@@ -2,6 +2,9 @@ import React, { useEffect, useMemo } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createStructuredSelector } from "reselect";
+import { useTranslation } from "react-i18next";
+import { localizedField } from "../../utils/localized";
+import MediaDisplay from "../../Components/MediaDisplay";
 
 import {
   getCategoriesRequestAction,
@@ -32,6 +35,7 @@ const Categories = ({
   getCategories,
   clearCategories,
 }) => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -150,11 +154,8 @@ const Categories = ({
   };
 
   const getCategoryImage = (category) => {
-    if (category?.image) {
-      return category.image;
-    }
-
-    return process.env.REACT_APP_CATEGORY_PLACEHOLDER_URL || process.env.REACT_APP_PRODUCT_PLACEHOLDER_URL || "";
+    const savedImage = category?.image || category?.homeImage;
+    return savedImage || "";
   };
 
   const getProductCount = (category) => {
@@ -174,19 +175,19 @@ const Categories = ({
         <div className="categories-hero-content">
           <div className="categories-hero-badge">
             <span className="hero-badge-dot" />
-            KHÁM PHÁ SẢN PHẨM
+            {t("exploreProducts")}
           </div>
 
-          <h1>Danh mục sản phẩm</h1>
+          <h1>{t("categoriesTitle")}</h1>
 
           <p>
-            Tìm nhanh nhóm vật tư cho nhà kính, hệ thống tưới và chăm sóc cây trồng.
+            {t("categoriesIntro")}
           </p>
 
           <div className="categories-hero-stats">
             <div className="hero-stat">
               <strong>{total}</strong>
-              <span>Danh mục</span>
+              <span>{t("categoryCount")}</span>
             </div>
           </div>
         </div>
@@ -201,14 +202,14 @@ const Categories = ({
           <div>
             <span className="section-eyebrow">SHOP BY CATEGORY</span>
 
-            <h2>Tất cả danh mục</h2>
+            <h2>{t("allCategories")}</h2>
 
-            <p>Chọn một danh mục để xem các sản phẩm đang được bán.</p>
+            <p>{t("selectCategory")}</p>
           </div>
 
           <div className="category-result-count">
             <span>{total}</span>
-            <small>Danh mục</small>
+            <small>{t("categoryCount")}</small>
           </div>
         </div>
 
@@ -240,9 +241,9 @@ const Categories = ({
           <div className="categories-empty">
             <div className="empty-icon">⌂</div>
 
-            <h3>Chưa có danh mục</h3>
+            <h3>{t("noCategories")}</h3>
 
-            <p>Hiện tại chưa có danh mục sản phẩm nào đang hoạt động.</p>
+            <p>{t("noActiveCategories")}</p>
 
             <button
               type="button"
@@ -253,7 +254,7 @@ const Categories = ({
                   status: "active",
                 })
               }>
-              Thử lại
+              {t("retry")}
             </button>
           </div>
         )}
@@ -265,6 +266,8 @@ const Categories = ({
           <div className="categories-grid">
             {categories.map((category, index) => {
               const number = (currentPage - 1) * currentLimit + index + 1;
+              const categoryName = localizedField(category, "name", i18n.resolvedLanguage);
+              const categoryDescription = localizedField(category, "description", i18n.resolvedLanguage);
 
               return (
                 <article
@@ -273,11 +276,7 @@ const Categories = ({
                   onClick={() => handleCategoryClick(category)}>
                   {/* IMAGE */}
                   <div className="category-image-wrapper">
-                    <img
-                      src={getCategoryImage(category)}
-                      alt={category.name}
-                      className="category-image"
-                    />
+                    {getCategoryImage(category) ? <MediaDisplay src={getCategoryImage(category)} alt={categoryName} className="category-image" onError={(event) => { event.currentTarget.style.display = "none"; }} /> : <div className="category-image category-image-empty" aria-hidden="true" />}
 
                     <div className="category-image-overlay" />
 
@@ -286,7 +285,7 @@ const Categories = ({
                     </span>
 
                     {category.status === "active" && (
-                      <span className="category-status">Đang bán</span>
+                      <span className="category-status">{t("selling")}</span>
                     )}
 
                     <div className="category-arrow">→</div>
@@ -295,18 +294,18 @@ const Categories = ({
                   {/* CONTENT */}
                   <div className="category-card-content">
                     <div className="category-card-top">
-                      <h3>{category.name}</h3>
+                      <h3>{categoryName}</h3>
 
                       <span className="category-level">
                         {category.level === 0
-                          ? "Danh mục chính"
-                          : `Cấp ${category.level}`}
+                          ? t("mainCategory")
+                          : `${t("level")} ${category.level}`}
                       </span>
                     </div>
 
                     <p className="category-description">
-                      {category.description ||
-                        "Khám phá các sản phẩm thuộc danh mục này."}
+                      {categoryDescription ||
+                        t("categoryFallback")}
                     </p>
 
                     <div className="category-card-footer">
@@ -317,7 +316,7 @@ const Categories = ({
                       </span>
 
                       <span className="category-explore">
-                        Xem sản phẩm
+                        {t("homeViewProducts")}
                         <span>↗</span>
                       </span>
                     </div>
@@ -344,23 +343,23 @@ const Categories = ({
 
               <span>
                 {" "}
-                trong tổng số <strong>{total}</strong> danh mục
+                {t("inTotal")} <strong>{total}</strong> {t("categoryPlural")}
               </span>
             </div>
 
             <div className="category-limit">
-              <span>Hiển thị</span>
+              <span>{t("showing")}</span>
 
               <select value={currentLimit} onChange={handleChangeLimit}>
-                <option value="4">4 / trang</option>
+                <option value="4">4 {t("perPage")}</option>
 
-                <option value="8">8 / trang</option>
+                <option value="8">8 {t("perPage")}</option>
 
-                <option value="12">12 / trang</option>
+                <option value="12">12 {t("perPage")}</option>
 
-                <option value="20">20 / trang</option>
+                <option value="20">20 {t("perPage")}</option>
 
-                <option value="40">40 / trang</option>
+                <option value="40">40 {t("perPage")}</option>
               </select>
             </div>
           </div>

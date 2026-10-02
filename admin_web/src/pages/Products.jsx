@@ -4,6 +4,8 @@ import { Page, Btn, Danger, Money } from "../components/UI";
 import { products, variants, categories, brands } from "../api";
 import { unwrap, err, idOf } from "../utils/helpers";
 import { loadPromotions, discountForProduct } from "../utils/promotions";
+import MediaPreview from '../components/MediaPreview';
+import { canAdmin } from "../utils/adminPermissions";
 
 const PAGE_SIZE = 20;
 const listOf = (r) => unwrap(r).items || [];
@@ -16,7 +18,7 @@ const discountInfo = (price, compareAtPrice) => {
 const attrs = (v) => Object.entries(v?.attributes || {}).filter(([, x]) => String(x).trim());
 
 function ProductImage({ src, name }) {
-  return src ? <img className="product-thumb" src={src} alt="" onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextSibling.style.display = "grid"; }} /> :
+  return src ? <MediaPreview className="product-thumb" src={src} alt="" /> :
     <div className="product-thumb product-thumb-placeholder">{String(name || "SP").slice(0, 2).toUpperCase()}</div>;
 }
 
@@ -62,17 +64,18 @@ export default function Products() {
     } catch (e) { setError(err(e)); }
   };
 
-  const load = async (targetPage = page) => {
+  const load = async (targetPage = page, filterOverrides = {}) => {
     setLoading(true);
     setError("");
     try {
+      const filters = { q, category, brand, status, hasVariants, ...filterOverrides };
       const r = await products.list({
         page: targetPage, limit: PAGE_SIZE,
-        search: q.trim() || undefined,
-        category: category || undefined,
-        brand: brand || undefined,
-        status: status || undefined,
-        hasVariants: hasVariants === "" ? undefined : hasVariants === "true",
+        search: filters.q.trim() || undefined,
+        category: filters.category || undefined,
+        brand: filters.brand || undefined,
+        status: filters.status || undefined,
+        hasVariants: filters.hasVariants === "" ? undefined : filters.hasVariants === "true",
       });
       const data = unwrap(r);
       const productItems = data.items || [];
@@ -99,7 +102,7 @@ export default function Products() {
 
   const reset = () => {
     setQ(""); setCategory(""); setBrand(""); setStatus(""); setHasVariants(""); setPage(1);
-    setTimeout(() => load(1), 0);
+    load(1, { q: "", category: "", brand: "", status: "", hasVariants: "" });
   };
 
   const remove = async (p) => {
@@ -113,7 +116,7 @@ export default function Products() {
     } catch (e) { setError(err(e)); }
   };
 
-  return <Page title="Sản phẩm" actions={<Link className="btn primary" to="/admin/products/new">+ Thêm sản phẩm</Link>}>
+  return <Page title="Sản phẩm" actions={canAdmin("product.create") && <Link className="btn primary" to="/admin/products/new">+ Thêm sản phẩm</Link>}>
     {error && <div className="error product-list-error">{error}</div>}
 
     <div className="product-toolbar">
@@ -143,7 +146,7 @@ export default function Products() {
         <option value="false">Không phân loại</option>
       </select>
       <Btn onClick={() => load(1)}>Tìm</Btn>
-      <button className="btn" type="button" onClick={reset}>Đặt lại</button>
+      <button className="btn" type="button" onClick={reset}>Hiện tất cả</button>
     </div>
 
     <div className="product-list-head">

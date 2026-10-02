@@ -8,6 +8,7 @@ r.use("/products", require("./productRoutes"));
 r.use("/variants", require("./productVariantRoutes"));
 r.use("/cart", require("./cartRoutes"));
 r.use("/coupons", require("./couponRoutes"));
+r.use("/promotions", require("./promotionRoutes"));
 r.use("/notifications", require("./notificationRoutes"));
 r.use("/orders", require("./orderRoutes"));
 r.use("/order-items", require("./orderItemRoutes"));
@@ -17,5 +18,7 @@ r.use("/wishlist", require("./wishlistRoutes"));
 r.use("/news", require("./newsRoutes"));
 r.use("/news-categories", require("./newsCategoryRoutes"));
 r.use("/banners", require("./bannerRoutes"));
+r.use("/site-media", require("./siteMediaRoutes"));
 r.use("/admin", require("./adminResourceRoutes"));
 module.exports = r;
+

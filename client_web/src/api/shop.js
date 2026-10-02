@@ -34,6 +34,7 @@ export const getCategory = (id) => request.get(`/categories/${id}`).then(unwrap)
 export const getBrands = (params = {}) => request.get("/brands", { params }).then(unwrap);
 export const getBrand = (id) => request.get(`/brands/${id}`).then(unwrap);
 export const getBanners = (params = {}) => request.get("/banners", { params }).then(unwrap);
+export const getSiteMedia = () => request.get("/site-media").then(unwrap);
 export const getVariants = (params = {}) => request.get("/variants", { params }).then(unwrap);
 export const getVariant = (id) => request.get(`/variants/${id}`).then(unwrap);
 
@@ -48,11 +49,12 @@ export const removeCartItem = (itemId) => request.delete(`/cart/items/${itemId}`
 export const clearCart = () => request.delete("/cart/clear").then(cartData);
 
 export const getAddresses = () => request.get("/addresses").then(unwrap);
-export const createAddress = (payload) => request.post("/addresses", payload).then(unwrap);
+export const createAddress = (payload) => request.post("/addresses", payload).then((response) => dataOf(unwrap(response)));
 export const updateAddress = (id, payload) => request.patch(`/addresses/${id}`, payload).then(unwrap);
 export const deleteAddress = (id) => request.delete(`/addresses/${id}`).then(unwrap);
 
 export const createOrder = (payload) => request.post("/orders", payload).then(unwrap);
+export const createPayment = (payload) => request.post("/payments", payload).then(unwrap);
 export const getOrders = (params = {}) => request.get("/orders", { params }).then(unwrap);
 export const getOrder = (id) => request.get(`/orders/${id}`).then(unwrap);
 export const cancelOrder = (id) => request.patch(`/orders/${id}/cancel`).then(unwrap);
@@ -66,5 +68,7 @@ export const readNotification = (id) => request.patch(`/notifications/${id}/read
 export const readAllNotifications = () => request.post("/notifications/read-all").then(unwrap);
 
 export const validateCoupon = (code) => request.get(`/coupons/code/${encodeURIComponent(code)}`).then(unwrap);
+export const getAvailableCoupons = () => request.get("/coupons/available").then(unwrap);
+export const getPromotions = () => request.get("/promotions").then(unwrap);
 
 export { dataOf };

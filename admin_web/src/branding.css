@@ -7,7 +7,7 @@
 body { background: #fffaf0; color: var(--admin-ink); }
 aside { background: linear-gradient(180deg, #3b2612, #583511); color: #fff1d5; }
 .logo.admin-logo { display: flex; align-items: center; gap: 10px; padding: 0 10px 22px; font-size: 14px; line-height: 1.35; }
-.admin-logo img { width: 50px; height: 50px; flex: 0 0 50px; object-fit: contain; border-radius: 10px; background: #fff; }
+.admin-logo img,.admin-logo video { width: 50px; height: 50px; flex: 0 0 50px; object-fit: contain; border-radius: 10px; background: #fff; }
 .admin-logo span { display: flex; flex-direction: column; gap: 3px; }
 .admin-logo strong { color: #fff; font-size: 12px; }
 .admin-logo small { color: #ffc76a !important; font-size: 9px !important; letter-spacing: .06em; }

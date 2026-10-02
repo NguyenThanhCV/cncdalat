@@ -1,5 +1,5 @@
 const r = require("express").Router(),
-  { protect } = require("../middlewares/authMiddleware"),
+  { protect, restrictTo } = require("../middlewares/authMiddleware"),
   perm = require("../middlewares/permissionMiddleware"),
   P = require("../constants/permissions"),
   crud = require("../controllers/crudController"),
@@ -72,7 +72,7 @@ const models = [
   ["newsCategories", require("../models/NewsCategory"), P.NEWSCATEGORY_READ, P.NEWSCATEGORY_CREATE, P.NEWSCATEGORY_UPDATE, P.NEWSCATEGORY_DELETE, []],
   ["banners", require("../models/Banner"), P.BANNER_READ, P.BANNER_CREATE, P.BANNER_UPDATE, P.BANNER_DELETE, []],
 ];
-r.use(protect);
+r.use(protect, restrictTo("admin", "manager", "staff"));
 for (const [path, M, pr, pc, pu, pd, pop] of models) {
   const c = crud.make(cs.make(M, { populate: pop })),
     x = require("express").Router();

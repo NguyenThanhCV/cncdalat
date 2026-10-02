@@ -36,7 +36,7 @@ function* getProductsSaga({ payload }) {
     ================================================
     */
 
-    if (!result?.success) {
+    if (!result?.success && !Array.isArray(result?.data)) {
       yield put(
         saveProductsAction({
           data: [],
@@ -57,9 +57,9 @@ function* getProductsSaga({ payload }) {
 
     yield put(
       saveProductsAction({
-        data: result.data || [],
+        data: Array.isArray(result?.data) ? result.data : Array.isArray(result?.data?.data) ? result.data.data : [],
 
-        pagination: result.pagination || {
+        pagination: result.pagination || result.data?.pagination || {
           page: payload?.page || 1,
 
           limit: payload?.limit || 20,

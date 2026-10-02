@@ -16,6 +16,8 @@ const Banner = require("../models/Banner");
 const Product = require("../models/Product");
 const Variant = require("../models/ProductVariant");
 const Category = require("../models/Category");
+const Promotion = require("../models/Promotion");
+const rolePermissions = require("../constants/rolePermissions");
 
 const SAMPLE_PASSWORD = "12345678";
 const demoCustomers = Array.from({ length: 9 }, (_, index) => {
@@ -26,7 +28,7 @@ const demoCustomers = Array.from({ length: 9 }, (_, index) => {
     phone: `09000000${n}`,
     role: "customer",
     status: "active",
-    permissions: [],
+    permissions: rolePermissions.customer,
   };
 });
 const demoBanners = [
@@ -80,15 +82,28 @@ async function run() {
     throw new Error(`Expected 50 sample products/variants and 10 categories; found ${products.length}/${variants.length}/${categories.length}.`);
 
   const now = new Date();
+  const campaignSeeds = [
+    { id: "promo_demo_welcome", name: "Ưu đãi vật tư nhà kính", scope: "category", categoryIds: [categories[0]._id], type: "percent", value: 10, startDate: now, endDate: new Date(now.getTime() + 30 * 86400000), status: "active" },
+    { id: "promo_demo_garden", name: "Chăm vườn tiết kiệm", scope: "product", productIds: [products[1]._id, products[2]._id], type: "fixed", value: 25000, startDate: now, endDate: new Date(now.getTime() + 14 * 86400000), status: "active" },
+    { id: "promo_demo_brand", name: "Ưu đãi thương hiệu tháng này", scope: "brand", brandIds: [products[3].brand].filter(Boolean), type: "percent", value: 7, startDate: now, endDate: new Date(now.getTime() + 21 * 86400000), status: "active" },
+    { id: "promo_demo_expired", name: "Ưu đãi mẫu đã kết thúc", scope: "product", productIds: [products[4]._id], type: "percent", value: 50, startDate: new Date(now.getTime() - 14 * 86400000), endDate: new Date(now.getTime() - 86400000), status: "active" },
+  ];
+  for (const campaign of campaignSeeds) {
+    await Promotion.findOneAndUpdate({ id: campaign.id }, { $set: campaign }, { upsert: true, new: true, runValidators: true });
+  }
+
   const coupons = [];
   for (let i = 0; i < 10; i += 1) {
     const code = `DALAT${String(i + 1).padStart(2, "0")}`;
-    coupons.push(await Coupon.findOneAndUpdate(
+    const coupon = await Coupon.findOneAndUpdate(
       { code },
       { $set: { code, name: `Ưu đãi mẫu ${i + 1}`, type: i % 2 ? "fixed" : "percentage", value: i % 2 ? 20000 + i * 1000 : 5 + i, minOrderValue: 100000, maxDiscount: 150000, usageLimit: 100, usageLimitPerUser: 1, usedCount: 1, startDate: now, endDate: new Date(now.getTime() + 365 * 86400000), applicableProducts: [products[i]._id], applicableCategories: [categories[i % categories.length]._id], status: "active" } },
       { new: true, upsert: true, runValidators: true },
-    ));
+    );
+    coupons.push(coupon);
+    if (i < 3) coupon.usedCount = 0;
   }
+  await Promise.all(coupons.slice(0, 3).map((coupon) => coupon.save()));
 
   const paymentMethods = ["cod", "bank_transfer", "vnpay", "momo", "other"];
   const orderStatuses = ["completed", "completed", "processing", "confirmed", "pending", "completed", "processing", "completed", "confirmed", "completed"];
@@ -161,7 +176,7 @@ async function run() {
     const seedKey = `demo-dalat-${String(i + 1).padStart(2, "0")}`;
     await Banner.findOneAndUpdate(
       { seedKey },
-      { $set: { seedKey, pageKey, name: `Banner mẫu ${i + 1}`, title, eyebrow, description: "Dữ liệu minh họa cho giao diện website.", imageUrl: `${assetBaseUrl}/${photo}?auto=format&fit=crop&w=1600&q=80`, altText: title, buttonText: "Khám phá", buttonLink: "/products", status: "active", sortOrder: i + 1, textPosition: "left", overlayOpacity: 0.42 } },
+      { $set: { seedKey, pageKey, name: `Banner mẫu ${i + 1}`, title, eyebrow, description: "Dữ liệu minh họa cho giao diện website.", imageUrl: `${assetBaseUrl}/${photo}?auto=format&fit=crop&w=1600&q=80`, altText: title, buttonText: pageKey === "products" ? "Xem danh mục" : "Khám phá", buttonLink: pageKey === "products" ? "/categories" : "/products", status: "active", sortOrder: i + 1, textPosition: "left", overlayOpacity: 0.42 } },
       { new: true, upsert: true, runValidators: true },
     );
   }
@@ -176,7 +191,7 @@ async function run() {
       products: await count(Product, { slug: /^mau-\d{2}-/ }),
       variants: await count(Variant, { sku: /^HS-MAU-/ }),
       addresses: await count(Address), carts: await count(Cart), wishlists: await count(Wishlist),
-      coupons: await count(Coupon, { code: /^DALAT\d{2}$/ }), couponRedemptions: await count(CouponRedemption),
+      coupons: await count(Coupon, { code: /^DALAT\d{2}$/ }), promotions: await count(Promotion, { id: /^promo_demo_/ }), activePromotions: await count(Promotion, { id: /^promo_demo_/, status: "active", endDate: { $gte: new Date() } }), couponRedemptions: await count(CouponRedemption),
       orders: await count(Order, { orderNumber: /^DEMO-/ }), orderItems: await count(OrderItem), payments: await count(Payment),
       reviews: await count(Review), notifications: await count(Notification),
       banners: await count(Banner, { seedKey: /^demo-dalat-/ }),

@@ -1,0 +1,25 @@
+.media-settings-intro { margin: -7px 0 24px; color: #758078; font-size: 13px; }
+.hero-media-panel { overflow: hidden; margin: 0 0 30px; border: 1px solid #e9dfcb; border-radius: 18px; background: linear-gradient(135deg, #fffdf8, #f8f4e9); box-shadow: 0 12px 32px rgba(64, 42, 22, .06); }
+.hero-media-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 22px 24px 17px; }
+.hero-media-eyebrow { color: #a76518; font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+.hero-media-panel-heading h2,.media-library-heading h2 { margin: 7px 0 4px; color: #402a16; font-size: 20px; }
+.hero-media-panel-heading p,.media-library-heading p { margin: 0; color: #758078; font-size: 12px; line-height: 1.6; }
+.hero-media-preview { height: clamp(220px, 34vw, 410px); margin: 0 16px; overflow: hidden; border-radius: 13px; background: #1b2920; }
+.hero-media-preview video,.hero-media-preview img,.hero-media-preview iframe { display: block; width: 100%; height: 100%; border: 0; object-fit: cover; }
+.hero-media-empty { display: grid; min-height: 180px; place-items: center; margin: 0 16px; padding: 28px; border: 1px dashed #d8c8a9; border-radius: 13px; background: #fffaf0; color: #758078; text-align: center; }
+.hero-media-panel-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 17px 24px 20px; }
+.hero-media-panel-footer code { color: #71796f; font-size: 11px; }
+.media-library-heading { margin: 8px 0 14px; }
+.media-location { display: grid; gap: 4px; min-width: 170px; }
+.media-location b { color: #402a16; font-size: 12px; }
+.media-location small,.media-location-hint small { color: #758078; font-size: 11px; line-height: 1.45; }
+.media-location-hint { display: grid; gap: 5px; padding: 12px 14px; border: 1px solid #eadfc9; border-radius: 9px; background: #fffaf0; color: #5d4a31; font-size: 12px; }
+.media-status { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; background: #edf4e8; color: #45613a; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.media-status.inactive { background: #f2eee7; color: #766c5c; }
+.media-form-preview { display: grid; gap: 9px; }
+.media-form-preview>span { color: #68746b; font-size: 12px; font-weight: 700; }
+@media (max-width: 640px) {
+  .hero-media-panel-heading { flex-direction: column; padding: 19px 17px 15px; }
+  .hero-media-preview { height: 230px; margin: 0 10px; }
+  .hero-media-panel-footer { align-items: flex-start; flex-direction: column; padding: 15px 17px 18px; }
+}

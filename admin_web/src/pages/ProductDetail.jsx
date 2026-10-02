@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Page, Table, Btn, Danger, Money } from "../components/UI";
 import { products, variants } from "../api";
 import { one, unwrap, idOf } from "../utils/helpers";
+import MediaPreview from '../components/MediaPreview';
 
 const id = (v) => String(v?._id || v?.id || v || "");
 
@@ -277,7 +278,7 @@ export default function ProductDetail() {
     {loading ? <div className="panel">Đang tải sản phẩm...</div> : <>
       <section className="product-overview panel">
         <div className="product-hero">
-          {productThumb ? <img className="product-hero-image" src={productThumb} alt="" /> : <div className="product-hero-image product-hero-placeholder">{String(product?.name || "SP").slice(0,2).toUpperCase()}</div>}
+          {productThumb ? <MediaPreview className="product-hero-image" src={productThumb} alt="" /> : <div className="product-hero-image product-hero-placeholder">{String(product?.name || "SP").slice(0,2).toUpperCase()}</div>}
           <div className="product-hero-info">
             <div className="product-title-line">
               <h2>{product?.name || "Sản phẩm"}</h2>
@@ -320,7 +321,7 @@ export default function ProductDetail() {
             const image = v.thumbnail || v.images?.[0];
             return <div className={`variant-card ${v.active === false ? "is-inactive" : ""}`} key={id(v) || i}>
               <div className="variant-card-top">
-                {image ? <img src={image} alt="" /> : <div className="variant-image-placeholder">SP</div>}
+                {image ? <MediaPreview src={image} alt="" /> : <div className="variant-image-placeholder">SP</div>}
                 <div className="variant-card-title">
                   <div className="variant-attributes">{attrs(v).length ? attrs(v).map(([k,x]) => <span key={k}><b>{k}</b>{x}</span>) : <span>Mặc định</span>}</div>
                   <b className="variant-sku">{v.sku || "Chưa có SKU"}</b>
@@ -356,8 +357,8 @@ export default function ProductDetail() {
           <label>Tồn kho<input type="number" min="0" value={quick.stock} onChange={e => quickChange("stock", e.target.value)} /></label>
           <label>Tồn giữ<input type="number" min="0" value={quick.reservedStock} onChange={e => quickChange("reservedStock", e.target.value)} /></label>
           <label>Khối lượng<input type="number" min="0" value={quick.weight} onChange={e => quickChange("weight", e.target.value)} /></label>
-          <label>Thumbnail<input value={quick.thumbnail} onChange={e => quickChange("thumbnail", e.target.value)} /></label>
-          <label className="full">Ảnh Variant (mỗi URL một dòng)<textarea value={quick.images} onChange={e => quickChange("images", e.target.value)} /></label>
+          <label>URL ảnh/video đại diện<input value={quick.thumbnail} onChange={e => quickChange("thumbnail", e.target.value)} placeholder="URL ảnh hoặc video cho Variant" /></label>
+          <label className="full">Gallery ảnh/video Variant (mỗi URL một dòng)<textarea value={quick.images} onChange={e => quickChange("images", e.target.value)} placeholder="Dán từng URL ảnh hoặc video trên một dòng" /></label>
           <label className="check"><input type="checkbox" checked={quick.active} onChange={e => quickChange("active", e.target.checked)} /> Hoạt động</label>
           <div className="full"><Btn type="submit" disabled={quickSaving}>{quickSaving ? "Đang tạo..." : "Tạo Variant"}</Btn></div>
         </form>
@@ -400,7 +401,7 @@ export default function ProductDetail() {
             <td><input type="number" min="0" value={r.compareAtPrice} onChange={e => updateRow(i, { compareAtPrice: e.target.value })} /></td>
             <td>{(() => { const sale = discountInfo(r.price, r.compareAtPrice); return sale.active ? <div className="discount-preview"><b>-{sale.percent}%</b><span>Tiết kiệm {money(sale.saving)} ₫</span></div> : <span className="muted">—</span>; })()}</td>
             <td><input type="number" min="0" value={r.stock} onChange={e => updateRow(i, { stock: e.target.value })} /></td>
-            <td><input value={r.thumbnail || ""} onChange={e => updateRow(i, { thumbnail: e.target.value })} placeholder="URL ảnh" /></td>
+            <td><input value={r.thumbnail || ""} onChange={e => updateRow(i, { thumbnail: e.target.value })} placeholder="URL ảnh/video" /></td>
             <td><input type="checkbox" checked={Boolean(r.active)} onChange={e => updateRow(i, { active: e.target.checked })} /></td>
             <td><Danger onClick={() => deleteRow(i)}>Xóa</Danger></td>
           </tr>)}

@@ -1,3 +1,83 @@
-import React,{useEffect,useMemo,useState}from'react';import{Link}from'react-router-dom';import{Page,Table,Btn}from'../components/UI';import{users}from'../api';
-const roles=['customer','staff','manager','admin'];const statuses=['active','blocked','inactive'];const rl={customer:'Khách hàng',staff:'Nhân viên',manager:'Quản lý',admin:'Admin'};const sl={active:'Hoạt động',blocked:'Đã khóa',inactive:'Không hoạt động'};
-export default function Users(){const[rows,setRows]=useState([]),[q,setQ]=useState(''),[role,setRole]=useState(''),[status,setStatus]=useState(''),[error,setError]=useState('');const load=async()=>{try{const r=await users.list({page:1,limit:100,...(q?{search:q}:{}),...(role?{role}:{}),...(status?{status}:{})});const d=r.data?.data??r.data;setRows(Array.isArray(d)?d:d?.data||[])}catch(e){setError(e.response?.data?.message||e.message)}};useEffect(()=>{load()},[role,status]);const toggle=async r=>{try{await users.status(r._id,r.status==='active'?'blocked':'active');load()}catch(e){setError(e.response?.data?.message||e.message)}};const changeRole=async(r,v)=>{try{await users.role(r._id,v);load()}catch(e){setError(e.response?.data?.message||e.message)}};return <Page title="Người dùng" actions={<Btn onClick={load}>↻ Làm mới</Btn>}><div className="toolbar"><input placeholder="Tìm tên, email, điện thoại…" value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&load()}/><select value={role} onChange={e=>setRole(e.target.value)}><option value="">Tất cả vai trò</option>{roles.map(x=><option key={x} value={x}>{rl[x]}</option>)}</select><select value={status} onChange={e=>setStatus(e.target.value)}><option value="">Tất cả trạng thái</option>{statuses.map(x=><option key={x} value={x}>{sl[x]}</option>)}</select><Btn onClick={load}>Tìm</Btn></div>{error&&<div className="error">{error}</div>}<Table rows={rows} columns={[{key:'name',label:'Khách hàng',render:r=><div><b>{r.name}</b><small>{r.email}</small></div>},{key:'phone',label:'Điện thoại',render:r=>r.phone||'—'},{key:'role',label:'Vai trò',render:r=><select value={r.role} onChange={e=>changeRole(r,e.target.value)}>{roles.map(x=><option key={x} value={x}>{rl[x]}</option>)}</select>},{key:'status',label:'Trạng thái',render:r=><span className={`status-pill ${r.status}`}>{sl[r.status]||r.status}</span>},{key:'lastLoginAt',label:'Đăng nhập cuối',render:r=>r.lastLoginAt?new Date(r.lastLoginAt).toLocaleString('vi-VN'):'Chưa có'},{key:'actions',label:'Thao tác',render:r=><span className="actions"><Link className="btn small" to={`/admin/users/${r._id}`}>Chi tiết</Link><Btn onClick={()=>toggle(r)}>{r.status==='active'?'Khóa':'Mở'}</Btn></span>}]}/></Page>}
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Page, Table, Btn, Modal } from "../components/UI";
+import { users } from "../api";
+import { canAdmin, isAdmin } from "../utils/adminPermissions";
+
+const roles = ["customer", "staff", "manager", "admin"];
+const roleLabels = { customer: "Khách hàng", staff: "Nhân viên", manager: "Quản lý", admin: "Admin" };
+const statusLabels = { active: "Hoạt động", blocked: "Đã khóa", inactive: "Không hoạt động" };
+const emptyUser = { name: "", email: "", phone: "", password: "", role: "staff" };
+
+export default function Users() {
+  const [rows, setRows] = useState([]);
+  const [query, setQuery] = useState("");
+  const [role, setRole] = useState("");
+  const [status, setStatus] = useState("");
+  const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(emptyUser);
+  const [saving, setSaving] = useState(false);
+  const admin = isAdmin();
+  const canStatus = canAdmin("user.status");
+
+  const load = async () => {
+    setError("");
+    try {
+      const response = await users.list({ page: 1, limit: 100, ...(query ? { search: query } : {}), ...(role ? { role } : {}), ...(status ? { status } : {}) });
+      const data = response.data?.data ?? response.data;
+      setRows(Array.isArray(data) ? data : data?.data || []);
+    } catch (e) { setError(e.response?.data?.message || e.message); }
+  };
+  const showAll = async () => {
+    setQuery("");
+    setRole("");
+    setStatus("");
+    setError("");
+    try {
+      const response = await users.list({ page: 1, limit: 100 });
+      const data = response.data?.data ?? response.data;
+      setRows(Array.isArray(data) ? data : data?.data || []);
+    } catch (e) { setError(e.response?.data?.message || e.message); }
+  };
+  useEffect(() => { load(); }, [role, status]);
+
+  const toggleStatus = async (user) => {
+    try { await users.status(user._id, user.status === "active" ? "blocked" : "active"); await load(); }
+    catch (e) { setError(e.response?.data?.message || e.message); }
+  };
+  const changeRole = async (user, nextRole) => {
+    try { await users.role(user._id, nextRole); await load(); }
+    catch (e) { setError(e.response?.data?.message || e.message); }
+  };
+  const createUser = async (event) => {
+    event.preventDefault(); setSaving(true); setError("");
+    try {
+      await users.create(form);
+      setOpen(false); setForm(emptyUser); await load();
+    } catch (e) { setError(e.response?.data?.message || e.message); }
+    finally { setSaving(false); }
+  };
+
+  return <Page title="Người dùng" actions={<><Btn onClick={load}>↻ Làm mới</Btn>{admin && <Btn className="primary" onClick={() => { setForm(emptyUser); setError(""); setOpen(true); }}>+ Thêm tài khoản</Btn>}</>}>
+    <div className="toolbar"><input placeholder="Tìm tên, email, điện thoại…" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} /><select value={role} onChange={(e) => setRole(e.target.value)}><option value="">Tất cả vai trò</option>{roles.map((item) => <option key={item} value={item}>{roleLabels[item]}</option>)}</select><select value={status} onChange={(e) => setStatus(e.target.value)}><option value="">Tất cả trạng thái</option>{Object.keys(statusLabels).map((item) => <option key={item} value={item}>{statusLabels[item]}</option>)}</select><Btn onClick={load}>Tìm</Btn><Btn onClick={showAll}>Tất cả</Btn></div>
+    {error && !open && <div className="error">{error}</div>}
+    <Table rows={rows} columns={[
+      { key: "name", label: "Người dùng", render: (user) => <div><b>{user.name}</b><small>{user.email}</small></div> },
+      { key: "phone", label: "Điện thoại", render: (user) => user.phone || "—" },
+      { key: "role", label: "Vai trò", render: (user) => admin ? <select value={user.role} onChange={(e) => changeRole(user, e.target.value)}>{roles.map((item) => <option key={item} value={item}>{roleLabels[item]}</option>)}</select> : roleLabels[user.role] || user.role },
+      { key: "status", label: "Trạng thái", render: (user) => <span className={`status-pill ${user.status}`}>{statusLabels[user.status] || user.status}</span> },
+      { key: "lastLoginAt", label: "Đăng nhập cuối", render: (user) => user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString("vi-VN") : "Chưa có" },
+      { key: "actions", label: "Thao tác", render: (user) => <span className="actions"><Link className="btn small" to={`/admin/users/${user._id}`}>Chi tiết</Link>{canStatus && <Btn onClick={() => toggleStatus(user)}>{user.status === "active" ? "Khóa" : "Mở"}</Btn>}</span> },
+    ]} />
+    {open && <Modal title="Thêm tài khoản" onClose={() => setOpen(false)}><form className="formgrid" onSubmit={createUser}>
+      {error && <div className="error full">{error}</div>}
+      <label>Họ tên *<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
+      <label>Email *<input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
+      <label>Mật khẩu tạm *<input required minLength={8} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
+      <label>Số điện thoại<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+      <label>Vai trò<select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>{roles.map((item) => <option key={item} value={item}>{roleLabels[item]}</option>)}</select></label>
+      <div className="full"><Btn type="button" onClick={() => setOpen(false)}>Hủy</Btn> <Btn className="primary" type="submit" disabled={saving}>{saving ? "Đang tạo…" : "Tạo tài khoản"}</Btn></div>
+    </form></Modal>}
+  </Page>;
+}

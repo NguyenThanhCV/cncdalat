@@ -39,27 +39,37 @@ exports.create = async (d) => {
     throw new AppError("Role không hợp lệ", 400);
   const u = await User.create({
     ...d,
-    permissions: d.permissions || RP[d.role || "customer"],
+    permissions: RP[d.role || "customer"] || [],
   });
   return clean(u);
 };
 exports.update = async (id, d) => {
   const u = await User.findById(id).select("+password");
   if (!u) throw new AppError("Không tìm thấy user", 404);
-  for (const k of ["name", "email", "phone", "avatar", "password", "status"])
+  if (d.role !== undefined || d.permissions !== undefined || d.status !== undefined || d.password !== undefined)
+    throw new AppError("Role, quyền, trạng thái và mật khẩu cần thao tác riêng.", 400);
+  for (const k of ["name", "email", "phone", "avatar"])
     if (d[k] !== undefined) u[k] = d[k];
   if (d.email) u.email = d.email.toLowerCase();
-  if (d.role !== undefined) {
-    if (!ALL_ROLES.includes(d.role))
-      throw new AppError("Role không hợp lệ", 400);
-    u.role = d.role;
-    u.permissions = RP[d.role] || [];
-  }
   await u.save();
   return clean(u);
 };
-exports.status = async (id, status) => exports.update(id, { status });
-exports.role = async (id, role) => exports.update(id, { role });
+exports.status = async (id, status) => {
+  const u = await User.findById(id);
+  if (!u) throw new AppError("Không tìm thấy user", 404);
+  u.status = status;
+  await u.save();
+  return clean(u);
+};
+exports.role = async (id, role) => {
+  if (!ALL_ROLES.includes(role)) throw new AppError("Role không hợp lệ", 400);
+  const u = await User.findById(id);
+  if (!u) throw new AppError("Không tìm thấy user", 404);
+  u.role = role;
+  u.permissions = RP[role] || [];
+  await u.save();
+  return clean(u);
+};
 exports.permissions = async (id, permissions) => {
   if (
     !Array.isArray(permissions) ||

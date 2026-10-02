@@ -8,6 +8,7 @@ import Brands from "./PagesClient/Brands";
 import ProductDetail from "./PagesClient/ProductDetail";
 import InfoPages from "./PagesClient/InfoPages";
 import NewsPage, { NewsDetailPage } from "./PagesClient/News";
+import PromotionsPage from "./PagesClient/Promotions";
 const routes = [
   {
     path: "/*",
@@ -39,6 +40,7 @@ const routes = [
   { path: "/privacy", component: () => <InfoPages /> },
   { path: "/terms", component: () => <InfoPages /> },
   { path: "/news", component: () => <NewsPage /> },
+  { path: "/promotions", component: () => <PromotionsPage /> },
   { path: "/news/:slug", component: () => <NewsDetailPage /> },
   {
     path: "/products/:productId",

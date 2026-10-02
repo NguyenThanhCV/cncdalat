@@ -16,6 +16,8 @@ const groups = [
   "newsArticle",
   "newsCategory",
   "banner",
+  "promotion",
+  "siteMedia",
 ];
 const P = {};
 for (const g of groups)

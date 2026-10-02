@@ -3,6 +3,7 @@ const Variant = require("../models/ProductVariant");
 const AppError = require("../utils/AppError");
 const escapeRegex = require("../utils/escapeRegex");
 const variantService = require("./variantService");
+const Promotion = require("../models/Promotion");
 
 const crud = require("./crudService").make(Model, {
   populate: [
@@ -34,6 +35,23 @@ const crud = require("./crudService").make(Model, {
  */
 exports.list = async (query = {}) => {
   const filter = {};
+
+  // Sale-deal pages request only products included in a currently valid campaign.
+  if (query.deal) {
+    const now = new Date();
+    const campaign = await Promotion.findOne({ id: String(query.deal), status: "active", $and: [
+      { $or: [{ startDate: { $exists: false } }, { startDate: null }, { startDate: { $lte: now } }] },
+      { $or: [{ endDate: { $exists: false } }, { endDate: null }, { endDate: { $gte: now } }] },
+    ] }).lean();
+    if (!campaign) return { data: [], pagination: { page: Math.max(+query.page || 1, 1), limit: Math.min(Math.max(+query.limit || 20, 1), 100), total: 0, pages: 0 } };
+    const includedIds = campaign.scope === "product" ? campaign.productIds : campaign.scope === "category" ? campaign.categoryIds : campaign.brandIds;
+    const campaignFilter = campaign.scope === "product"
+      ? { _id: { $in: includedIds || [] } }
+      : campaign.scope === "category"
+        ? { category: { $in: includedIds || [] } }
+        : { brand: { $in: includedIds || [] } };
+    filter._id = { $in: await Model.find(campaignFilter).distinct("_id") };
+  }
 
   /*
    * CATEGORY
@@ -68,9 +86,17 @@ exports.list = async (query = {}) => {
    */
   if (query.hasVariants !== undefined) {
     const productIds = await Variant.distinct("product");
-    filter._id = query.hasVariants === true || query.hasVariants === "true"
-      ? { $in: productIds }
-      : { $nin: productIds };
+    if (query.deal) {
+      if (query.hasVariants === true || query.hasVariants === "true") {
+        filter._id.$in = filter._id.$in.filter((id) => productIds.some((other) => String(other) === String(id)));
+      } else {
+        filter._id.$nin = productIds;
+      }
+    } else {
+      filter._id = query.hasVariants === true || query.hasVariants === "true"
+        ? { $in: productIds }
+        : { $nin: productIds };
+    }
   }
 
   /*
@@ -79,13 +105,25 @@ exports.list = async (query = {}) => {
   if (query.search) {
     const re = { $regex: escapeRegex(query.search), $options: "i" };
     const variantProducts = await Variant.find({ $or: [{ sku: re }, { barcode: re }] }).distinct("product");
-    filter.$or = [
+    const searchConditions = [
       { name: re },
+      { nameEn: re },
       { slug: re },
       { _id: { $in: variantProducts } },
     ];
+    if (query.deal) {
+      // The generic CRUD helper also adds its own name/code/title $or for search.
+      // Combine both clauses so SKU/barcode search stays inside the selected campaign.
+      filter.$and = [...(filter.$and || []), { $or: searchConditions }];
+    } else {
+      filter.$or = searchConditions;
+    }
   }
 
+  if (query.deal && query.search) {
+    const { search: _search, ...listingQuery } = query;
+    return crud.list(filter, listingQuery);
+  }
   return crud.list(filter, query);
 };
 

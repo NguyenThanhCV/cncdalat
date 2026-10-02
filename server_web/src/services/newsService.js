@@ -19,10 +19,10 @@ exports.list = async (query = {}) => {
   }
   if (query.search) {
     const search = { $regex: escapeRegex(String(query.search).slice(0, 80)), $options: "i" };
-    filter.$or = [{ title: search }, { excerpt: search }, { tags: search }];
+    filter.$or = [{ title: search }, { titleEn: search }, { excerpt: search }, { excerptEn: search }, { tags: search }];
   }
   const [data, total] = await Promise.all([
-    NewsArticle.find(filter).populate("category", "name slug").populate("author", "name")
+    NewsArticle.find(filter).populate("category", "name nameEn slug").populate("author", "name")
       .sort({ publishedAt: -1, _id: -1 }).skip((page - 1) * limit).limit(limit),
     NewsArticle.countDocuments(filter),
   ]);
@@ -31,7 +31,7 @@ exports.list = async (query = {}) => {
 
 exports.getPublished = async (slug) => {
   const article = await NewsArticle.findOne({ slug, status: "published", publishedAt: { $lte: new Date() } })
-    .populate("category", "name slug").populate("author", "name");
+    .populate("category", "name nameEn slug").populate("author", "name");
   if (!article) throw new AppError("Không tìm thấy bài viết", 404);
   await NewsArticle.updateOne({ _id: article._id }, { $inc: { views: 1 } });
   return article;
@@ -52,7 +52,7 @@ exports.deleteCategory = async (id) => {
 exports.createArticle = (data) => NewsArticle.create(data);
 exports.updateArticle = async (id, data) => {
   const article = await NewsArticle.findByIdAndUpdate(id, data, { new: true, runValidators: true })
-    .populate("category", "name slug").populate("author", "name");
+    .populate("category", "name nameEn slug").populate("author", "name");
   if (!article) throw new AppError("Không tìm thấy bài viết", 404);
   return article;
 };

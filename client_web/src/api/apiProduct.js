@@ -13,6 +13,7 @@ export const getProductsService = (params = {}) => {
     status = "active",
     featured,
     sort,
+    deal,
   } = params;
 
   const query = new URLSearchParams();
@@ -42,6 +43,10 @@ export const getProductsService = (params = {}) => {
 
   if (sort) {
     query.append("sort", sort);
+  }
+
+  if (deal) {
+    query.append("deal", deal);
   }
 
   return request(`/products?${query.toString()}`, {

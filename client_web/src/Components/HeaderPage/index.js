@@ -30,13 +30,19 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 import { asyncLogoutAction } from "../../PagesClient/Logout/stores/actions";
 
 import "./index.css";
 import { getCart } from "../../api/shop";
+import MediaDisplay from "../MediaDisplay";
+import useSiteMedia from "../../hooks/useSiteMedia";
 
 const HeaderPage = () => {
+  const { i18n, t } = useTranslation();
+  const storeLogo = useSiteMedia("store-logo");
+
   const dispatch = useDispatch();
 
   const location = useLocation();
@@ -148,10 +154,10 @@ const HeaderPage = () => {
 
   const getUserName = () => {
     if (!user) {
-      return "Tài khoản";
+      return t("account");
     }
 
-    return user.name || user.email || "Tài khoản";
+    return user.name || user.email || t("account");
   };
 
   // =====================================================
@@ -164,10 +170,10 @@ const HeaderPage = () => {
     }
 
     if (user.role === "admin") {
-      return "Quản trị viên";
+      return t("administrator");
     }
 
-    return "Khách hàng";
+    return t("customer");
   };
 
   // =====================================================
@@ -177,7 +183,7 @@ const HeaderPage = () => {
   const getAvatarText = () => {
     const name = getUserName();
 
-    if (!name || name === "Tài khoản") {
+    if (!name || name === t("account")) {
       return "";
     }
 
@@ -208,9 +214,9 @@ const HeaderPage = () => {
     setMobileMenuOpen(false);
 
     notification.success({
-      message: "Đăng xuất thành công",
+      message: t("logoutSuccess"),
 
-      description: "Bạn đã đăng xuất khỏi tài khoản.",
+      description: t("logoutDescription"),
     });
 
     navigate("/");
@@ -319,38 +325,38 @@ const HeaderPage = () => {
   const userMenu = user ? (
     <Menu onClick={handleUserMenuClick}>
       <Menu.Item key="profile" icon={<ProfileOutlined />}>
-        Thông tin tài khoản
+        {t("accountInfo")}
       </Menu.Item>
 
       <Menu.Item key="orders" icon={<ShoppingCartOutlined />}>
-        Đơn hàng của tôi
+        {t("myOrders")}
       </Menu.Item>
 
       <Menu.Item key="wishlist" icon={<HeartOutlined />}>
-        Sản phẩm yêu thích
+        {t("myFavorites")}
       </Menu.Item>
 
       <Menu.Item key="notifications" icon={<BellOutlined />}>
-        Thông báo
+        {t("notifications")}
       </Menu.Item>
       <Menu.Item key="addresses" icon={<EnvironmentOutlined />}>
-        Địa chỉ nhận hàng
+        {t("shippingAddresses")}
       </Menu.Item>
 
       <Menu.Divider />
 
       <Menu.Item key="logout" icon={<LogoutOutlined />} danger>
-        Đăng xuất
+        {t("logout")}
       </Menu.Item>
     </Menu>
   ) : (
     <Menu onClick={handleUserMenuClick}>
       <Menu.Item key="login" icon={<LoginOutlined />}>
-        Đăng nhập
+        {t("loginSubmit")}
       </Menu.Item>
 
       <Menu.Item key="register" icon={<UserAddOutlined />}>
-        Đăng ký
+        {t("register")}
       </Menu.Item>
     </Menu>
   );
@@ -359,11 +365,15 @@ const HeaderPage = () => {
   // LANGUAGE MENU
   // =====================================================
 
+  const activeLanguage = (i18n.resolvedLanguage || i18n.language || "vi").split("-")[0];
   const languageMenu = (
-    <Menu>
-      <Menu.Item key="vi">Tiếng Việt</Menu.Item>
-
-      <Menu.Item key="en">English</Menu.Item>
+    <Menu
+      selectedKeys={[activeLanguage]}
+      onClick={({ key }) => {
+        if (key === "vi" || key === "en") i18n.changeLanguage(key);
+      }}>
+      <Menu.Item key="vi">🇻🇳 Tiếng Việt</Menu.Item>
+      <Menu.Item key="en">🇬🇧 English</Menu.Item>
     </Menu>
   );
 
@@ -375,31 +385,31 @@ const HeaderPage = () => {
     {
       key: "home",
 
-      label: <Link to="/">Trang chủ</Link>,
+      label: <Link to="/">{t("navHome")}</Link>,
     },
 
     {
       key: "products",
 
-      label: "Sản phẩm",
+      label: <Link to="/products">{t("navProducts")}</Link>,
 
       children: [
         {
           key: "all-products",
 
-          label: <Link to="/products">Tất cả sản phẩm</Link>,
+          label: <Link to="/products">{t("navAllProducts")}</Link>,
         },
 
         {
           key: "categories",
 
-          label: <Link to="/categories">Danh mục</Link>,
+          label: <Link to="/categories">{t("navCategories")}</Link>,
         },
 
         {
           key: "brands",
 
-          label: <Link to="/brands">Thương hiệu</Link>,
+          label: <Link to="/brands">{t("navBrands")}</Link>,
         },
       ],
     },
@@ -407,19 +417,24 @@ const HeaderPage = () => {
     {
       key: "about",
 
-      label: <Link to="/about">Giới thiệu</Link>,
+      label: <Link to="/about">{t("navAbout")}</Link>,
+    },
+
+    {
+      key: "promotions",
+      label: <Link to="/promotions">{t("navOffers")}</Link>,
     },
 
     {
       key: "news",
 
-      label: <Link to="/news">Tin tức</Link>,
+      label: <Link to="/news">{t("navNews")}</Link>,
     },
 
     {
       key: "contact",
 
-      label: <Link to="/contact">Liên hệ</Link>,
+      label: <Link to="/contact">{t("navContact")}</Link>,
     },
   ];
 
@@ -459,14 +474,12 @@ const HeaderPage = () => {
         <div className="header-brand-row">
         <div className="header-logo">
           <Link to="/" className="logo-link">
-            <img className="company-logo" src="/nha-kinh-cong-nghe-cao-da-lat.jpg" alt="Logo Nhà kính công nghệ cao Đà Lạt" />
+            {storeLogo?.mediaUrl && <MediaDisplay className="company-logo" src={storeLogo.mediaUrl} mediaType={storeLogo.mediaType} alt={storeLogo.altText || `${t("logoOf")} ${t("storeName")}`} />}
 
             <div className="logo-text">
-              <div className="logo-title">Nhà kính công nghệ cao Đà Lạt</div>
+              <div className="logo-title">{t("storeName")}</div>
 
-              <div className="logo-subtitle">
-                GIẢI PHÁP NÔNG NGHIỆP HIỆN ĐẠI
-              </div>
+              <div className="logo-subtitle">{t("headerTagline")}</div>
             </div>
           </Link>
         </div>
@@ -493,7 +506,11 @@ const HeaderPage = () => {
                 type="text"
                 className="header-icon-button language-button"
                 icon={<GlobalOutlined />}
-              />
+                aria-label={t("loginLanguage")}
+                title={activeLanguage === "vi" ? "Tiếng Việt" : "English"}>
+                <span className="language-code">{activeLanguage === "vi" ? "VI" : "EN"}</span>
+                <DownOutlined className="language-chevron" />
+              </Button>
             </span>
           </Dropdown>
 
@@ -538,7 +555,7 @@ const HeaderPage = () => {
 
                 <div className="header-user-info">
                   <span className="user-small">
-                    {user ? getUserRole() : "Tài khoản"}
+                    {user ? getUserRole() : t("account")}
                   </span>
 
                   <span className="user-name">{getUserName()}</span>
@@ -563,17 +580,17 @@ const HeaderPage = () => {
         </div>
 
         <div className="header-search-row">
-          <span className="header-search-label">TÌM SẢN PHẨM NHÀ VƯỜN</span>
+          <span className="header-search-label">{t("headerSearchLabel")}</span>
           <div className="header-search">
             <Input
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
               onKeyDown={handleSearchKeyDown}
-              placeholder="Bạn đang cần tìm vật tư gì?"
+              placeholder={t("headerSearchPlaceholder")}
               suffix={<SearchOutlined onClick={handleSearch} role="button" aria-label="Tìm kiếm" />}
             />
           </div>
-          <span className="header-search-hint">Vật tư · Thiết bị tưới · Chăm sóc vườn</span>
+          <span className="header-search-hint">{t("headerSearchHint")}</span>
         </div>
 
         <div className="header-navigation">
@@ -591,11 +608,18 @@ const HeaderPage = () => {
       ================================================= */}
 
       <Drawer
-        title="Menu"
+        title={t("mobileMenu")}
         placement="left"
         visible={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         width={300}>
+        <div className="mobile-language-picker" aria-label={t("loginChooseLanguage")}>
+          <span><GlobalOutlined /> {t("loginLanguage")}</span>
+          <div role="group" aria-label={t("loginChooseLanguage")}>
+            <Button size="small" type={activeLanguage === "vi" ? "primary" : "default"} onClick={() => i18n.changeLanguage("vi")}>🇻🇳 VI</Button>
+            <Button size="small" type={activeLanguage === "en" ? "primary" : "default"} onClick={() => i18n.changeLanguage("en")}>🇬🇧 EN</Button>
+          </div>
+        </div>
         {/* =================================================
             MOBILE SEARCH
         ================================================= */}
@@ -605,7 +629,7 @@ const HeaderPage = () => {
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
             onKeyDown={handleSearchKeyDown}
-            placeholder="Tìm kiếm sản phẩm..."
+            placeholder={t("productSearchPlaceholder")}
             suffix={
               <SearchOutlined
                 onClick={handleSearch}
@@ -632,7 +656,7 @@ const HeaderPage = () => {
           </Avatar>
 
           <div className="mobile-account-info">
-            <span>{user ? getUserRole() : "Tài khoản"}</span>
+            <span>{user ? getUserRole() : t("account")}</span>
 
             <strong>{getUserName()}</strong>
           </div>
@@ -672,7 +696,7 @@ const HeaderPage = () => {
 
                   navigate("/account");
                 }}>
-                Thông tin tài khoản
+                {t("accountInfo")}
               </Button>
 
               <Button
@@ -686,7 +710,7 @@ const HeaderPage = () => {
 
                   navigate("/orders");
                 }}>
-                Đơn hàng của tôi
+                {t("myOrders")}
               </Button>
 
               <Button
@@ -694,7 +718,7 @@ const HeaderPage = () => {
                 danger
                 icon={<LogoutOutlined />}
                 onClick={handleLogout}>
-                Đăng xuất
+                {t("logout")}
               </Button>
             </>
           ) : (
@@ -711,7 +735,7 @@ const HeaderPage = () => {
 
                   navigate("/login");
                 }}>
-                Đăng nhập
+                {t("loginSubmit")}
               </Button>
 
               <Button
@@ -722,7 +746,7 @@ const HeaderPage = () => {
 
                   navigate("/register");
                 }}>
-                Đăng ký
+                {t("register")}
               </Button>
             </>
           )}

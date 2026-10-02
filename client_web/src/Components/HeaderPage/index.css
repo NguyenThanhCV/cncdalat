@@ -259,6 +259,52 @@
   background: #f3f6fa !important;
 }
 
+.header-icon-button.language-button {
+  width: auto !important;
+  min-width: 68px;
+  height: 36px !important;
+  padding: 0 10px !important;
+  display: inline-flex;
+  gap: 7px;
+  border: 1px solid #e5ddce;
+  border-radius: 999px;
+  background: #fffdf8;
+  color: #405b43;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  box-shadow: 0 2px 7px rgba(58, 68, 48, .06);
+}
+
+.header-icon-button.language-button:hover,
+.header-icon-button.language-button:focus-visible {
+  border-color: #b7c9aa !important;
+  background: #f0f5eb !important;
+  color: #315b38 !important;
+}
+
+.language-code { line-height: 1; }
+.language-chevron { font-size: 9px; color: #8b9886; }
+
+.mobile-language-picker {
+  margin: 12px 15px 4px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid #e8e4d9;
+  border-radius: 12px;
+  background: #fbfaf6;
+  color: #465a43;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mobile-language-picker > span,
+.mobile-language-picker > div { display: inline-flex; align-items: center; gap: 6px; }
+.mobile-language-picker .ant-btn { border-radius: 999px; }
+
 /* =====================================================
    USER
 ===================================================== */
@@ -572,6 +618,13 @@
     height: 38px;
   }
 
+  .header-icon-button.language-button {
+    width: auto !important;
+    height: 34px !important;
+    min-width: 64px;
+    padding: 0 9px !important;
+  }
+
   .mobile-menu-button {
     width: 38px;
 
@@ -593,9 +646,7 @@
     padding: 0 10px;
   }
 
-  .language-button {
-    display: none;
-  }
+  .language-button { display: inline-flex !important; }
 
   .logo-icon {
     width: 36px;

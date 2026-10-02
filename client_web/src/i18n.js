@@ -23,7 +23,7 @@ i18n
       lookupLocalStorage: "lang",
       caches: ["localStorage", "cookie"],
     },
-    lng: "vi",
+    lng: localStorage.getItem("lang") || "vi",
     debug: true,
     interpolation: {
       escapeValue: false,

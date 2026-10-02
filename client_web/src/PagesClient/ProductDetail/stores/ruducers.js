@@ -33,6 +33,7 @@ const productDetailReducers = (state = INIT_STATE_PRODUCT_DETAIL, action) => {
       return {
         ...state,
         variants: action.payload?.variants || [],
+        selectedVariant: null,
         variantPagination: action.payload?.pagination || {
           page: 1,
           limit: 20,

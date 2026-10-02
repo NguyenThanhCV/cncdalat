@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   PhoneOutlined,
   MailOutlined,
@@ -13,6 +14,7 @@ const storePhone = process.env.REACT_APP_STORE_PHONE || "0888004044";
 const storeEmail = process.env.REACT_APP_STORE_EMAIL || "congtynhakinhcongnghecaodalat@gmail.com";
 
 const PreHeader = () => {
+  const { t } = useTranslation();
   return (
     <div className="pre-header">
       <div className="pre-header-container">
@@ -29,7 +31,7 @@ const PreHeader = () => {
             </span>
 
             <span className="pre-header-text">
-              <span className="contact-label">Hotline</span>
+              <span className="contact-label">{t("hotline")}</span>
 
               <strong>{storePhone}</strong>
             </span>
@@ -49,7 +51,7 @@ const PreHeader = () => {
             </span>
 
             <span className="pre-header-text">
-              <span className="contact-label">Email</span>
+              <span className="contact-label">{t("email")}</span>
 
               <strong>{storeEmail}</strong>
             </span>
@@ -67,9 +69,9 @@ const PreHeader = () => {
             </span>
 
             <span className="pre-header-text">
-              <span className="contact-label">Địa chỉ công ty</span>
+              <span className="contact-label">{t("companyAddress")}</span>
 
-              <strong>Xem trên Google Maps ↗</strong>
+              <strong>{t("viewOnGoogleMaps")} ↗</strong>
             </span>
           </a>
         </div>
@@ -84,7 +86,7 @@ const PreHeader = () => {
           <div className="pre-header-message">
             <ClockCircleOutlined />
 
-            <span>Nhà kính công nghệ cao Đà Lạt đồng hành cùng nông dân Việt</span>
+            <span>{t("preHeaderMessage")}</span>
           </div>
 
           {/* DIVIDER */}
@@ -94,11 +96,11 @@ const PreHeader = () => {
           {/* SOCIAL */}
 
           <div className="pre-header-social">
-            <a href={process.env.REACT_APP_FACEBOOK_URL || "#"} target="_blank" rel="noreferrer" aria-label="Facebook Nhà kính công nghệ cao Đà Lạt" title="Facebook Nhà kính công nghệ cao Đà Lạt">
+            <a href={process.env.REACT_APP_FACEBOOK_URL || "#"} target="_blank" rel="noreferrer" aria-label={t("facebookStore")} title={t("facebookStore")}>
               <FacebookOutlined />
             </a>
 
-            <a href={process.env.REACT_APP_TIKTOK_URL || "#"} target="_blank" rel="noreferrer" aria-label="TikTok Nhà kính Lâm Đồng" title="TikTok Nhà kính công nghệ cao Đà Lạt" className="pre-header-tiktok">
+            <a href={process.env.REACT_APP_TIKTOK_URL || "#"} target="_blank" rel="noreferrer" aria-label={t("tiktokStore")} title={t("tiktokStore")} className="pre-header-tiktok">
               ♪
             </a>
           </div>

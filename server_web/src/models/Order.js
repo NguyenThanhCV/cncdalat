@@ -32,6 +32,7 @@ module.exports = mongoose.model(
       },
       subtotal: { type: Number, required: true, min: 0 },
       discount: { type: Number, default: 0, min: 0 },
+      promotionDiscount: { type: Number, default: 0, min: 0 },
       total: { type: Number, required: true, min: 0 },
       coupon: {
         type: mongoose.Schema.Types.ObjectId,

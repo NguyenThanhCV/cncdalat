@@ -143,7 +143,11 @@ function* getProductVariantsSaga({ payload }) {
       return;
     }
 
-    const variants = Array.isArray(result.data) ? result.data : [];
+    const variants = Array.isArray(result.data)
+      ? result.data
+      : Array.isArray(result.data?.data)
+        ? result.data.data
+        : [];
 
     const pagination = result.pagination || {
       page: 1,
@@ -167,8 +171,11 @@ function* getProductVariantsSaga({ payload }) {
     ================================================
     */
 
-    if (variants.length === 1) {
-      yield put(setSelectedVariantAction(variants[0]));
+    const availableVariants = variants.filter((variant) =>
+      variant?.active !== false && Number(variant?.availableStock ?? (Number(variant?.stock || 0) - Number(variant?.reservedStock || 0))) > 0,
+    );
+    if (availableVariants.length === 1) {
+      yield put(setSelectedVariantAction(availableVariants[0]));
     }
   } catch (error) {
     console.error("GET PRODUCT VARIANTS ERROR:", error);
