@@ -26,6 +26,7 @@ import OrderItemsPage from "./pages/OrderItemsPage";
 import NewsManagement from "./pages/NewsManagement";
 import BannerManagement from "./pages/BannerManagement";
 import MediaSettings from "./pages/MediaSettings";
+import DataManagement from "./pages/DataManagement";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
+          <Route path="data" element={<DataManagement />} />
           <Route element={<PermissionRoute permission="product.read" />}><Route path="products" element={<Products />} /></Route>
           <Route element={<PermissionRoute permission="product.create" />}><Route path="products/new" element={<ProductForm />} /></Route>
           <Route element={<PermissionRoute permission="product.read" />}><Route path="products/:id" element={<ProductDetail />} /></Route>

@@ -8,6 +8,7 @@ import "./AdminLayout.css";
 
 const groups = [
   ["TỔNG QUAN", [["Dashboard", "/admin"]]],
+  ["QUẢN LÝ DỮ LIỆU", [["Nội dung hiển thị website", "/admin/data"]]],
   ["BÁN HÀNG", [
     ["Sản phẩm", "/admin/products", "product.read"], ["Danh mục", "/admin/categories", "category.read"],
     ["Khuyến mãi", "/admin/promotions", "promotion.read"], ["Thương hiệu", "/admin/brands", "brand.read"],

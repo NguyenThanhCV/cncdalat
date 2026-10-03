@@ -31,19 +31,6 @@ const demoCustomers = Array.from({ length: 9 }, (_, index) => {
     permissions: rolePermissions.customer,
   };
 });
-const demoBanners = [
-  ["home", "Nhà kính công nghệ cao Đà Lạt", "Giải pháp cho nhà vườn", "photo-1585320806297-9794b3e4eeae"],
-  ["home", "Vật tư nhà kính", "Chọn đúng vật tư cho mùa vụ", "photo-1530836369250-ef72a3f5cda8"],
-  ["home", "Hệ thống tưới", "Tưới hiệu quả, tiết kiệm nước", "photo-1592982537447-7440770cbfc9"],
-  ["products", "Sản phẩm nổi bật", "Vật tư thiết thực cho khu vườn", "photo-1416879595882-3373a0480b5b"],
-  ["categories", "Danh mục sản phẩm", "Khám phá giải pháp canh tác", "photo-1464226184884-fa280b87c399"],
-  ["brands", "Thương hiệu", "Lựa chọn đáng tin cậy", "photo-1466692476868-aef1dfb1e735"],
-  ["news", "Góc nhà vườn", "Kiến thức tốt, mùa vụ bền lâu", "photo-1500382017468-9049fed747ef"],
-  ["about", "Về chúng tôi", "Đồng hành cùng nhà vườn Đà Lạt", "photo-1499529112087-3cb3b73cec95"],
-  ["contact", "Liên hệ tư vấn", "Cùng tìm giải pháp phù hợp", "photo-1437482078695-73f5ca6c96e2"],
-  ["general", "Nhà kính Đà Lạt", "Sẵn sàng hỗ trợ công trình của bạn", "photo-1464226184884-fa280b87c399"],
-];
-const assetBaseUrl = process.env.ASSET_BASE_URL || "https://images.unsplash.com";
 
 async function upsertUser(data) {
   let user = await User.findOne({ email: data.email }).select("+password");
@@ -167,16 +154,6 @@ async function run() {
     await Notification.findOneAndUpdate(
       { user: user._id, title: `Thông báo mẫu ${String(i + 1).padStart(2, "0")}` },
       { $set: { user: user._id, type: i % 2 ? "promotion" : "order", title: `Thông báo mẫu ${String(i + 1).padStart(2, "0")}`, message: "Đây là thông báo mẫu phục vụ kiểm tra trang tài khoản.", data: { orderId: order._id }, isRead: i % 3 === 0, readAt: i % 3 === 0 ? now : undefined } },
-      { new: true, upsert: true, runValidators: true },
-    );
-  }
-
-  for (let i = 0; i < demoBanners.length; i += 1) {
-    const [pageKey, title, eyebrow, photo] = demoBanners[i];
-    const seedKey = `demo-dalat-${String(i + 1).padStart(2, "0")}`;
-    await Banner.findOneAndUpdate(
-      { seedKey },
-      { $set: { seedKey, pageKey, name: `Banner mẫu ${i + 1}`, title, eyebrow, description: "Dữ liệu minh họa cho giao diện website.", imageUrl: `${assetBaseUrl}/${photo}?auto=format&fit=crop&w=1600&q=80`, altText: title, buttonText: pageKey === "products" ? "Xem danh mục" : "Khám phá", buttonLink: pageKey === "products" ? "/categories" : "/products", status: "active", sortOrder: i + 1, textPosition: "left", overlayOpacity: 0.42 } },
       { new: true, upsert: true, runValidators: true },
     );
   }

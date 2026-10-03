@@ -9,6 +9,7 @@ import ProductDetail from "./PagesClient/ProductDetail";
 import InfoPages from "./PagesClient/InfoPages";
 import NewsPage, { NewsDetailPage } from "./PagesClient/News";
 import PromotionsPage from "./PagesClient/Promotions";
+import GlobalSearchPage from "./PagesClient/Search";
 const routes = [
   {
     path: "/*",
@@ -21,6 +22,10 @@ const routes = [
   {
     path: "/",
     component: () => <Users />,
+  },
+  {
+    path: "/search",
+    component: () => <GlobalSearchPage />,
   },
   {
     path: "/products",

@@ -1,4 +1,5 @@
 const r = require("express").Router();
+r.use("/search", require("./searchRoutes"));
 r.use("/auth", require("./authRoutes"));
 r.use("/users", require("./userRoutes"));
 r.use("/addresses", require("./addressRoutes"));

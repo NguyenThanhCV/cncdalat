@@ -10,6 +10,9 @@ const errorHandler = require("./src/middlewares/errorMiddleware");
 
 const app = express();
 app.use(helmet());
+const apiPrefix = (process.env.API_PREFIX || "").trim().replace(/^\/+|\/+$/g, "");
+if (!apiPrefix) throw new Error("API_PREFIX must be set in the .env file.");
+const apiPath = `/${apiPrefix}`;
 const allowedOrigins = [
   process.env.CLIENT_ORIGIN,
   process.env.ADMIN_ORIGIN,
@@ -20,7 +23,11 @@ const allowedOrigins = [
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin))
+      if (
+        !origin ||
+        allowedOrigins.length === 0 ||
+        allowedOrigins.includes(origin)
+      )
         return callback(null, true);
       const error = new Error("Origin không được phép");
       error.statusCode = 403;
@@ -40,21 +47,27 @@ app.use(
     legacyHeaders: false,
     message: {
       success: false,
-      message: "Hệ thống đang nhận nhiều yêu cầu. Vui lòng thử lại sau ít phút.",
+      message:
+        "Hệ thống đang nhận nhiều yêu cầu. Vui lòng thử lại sau ít phút.",
     },
   }),
 );
 app.get("/", (req, res) =>
   res.json({ success: true, message: "Shop API running" }),
 );
-app.use("/api", routes);
+app.use(apiPath, routes);
 app.use(notFound);
 app.use(errorHandler);
 
 const start = async () => {
   await connectDB();
-  const port = process.env.PORT || 5000;
-  app.listen(port, "0.0.0.0", () => console.log(`API running on 0.0.0.0:${port}`));
+  const port = Number(process.env.PORT);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error("PORT must be set to a valid TCP port in the .env file.");
+  }
+  app.listen(port, "0.0.0.0", () =>
+    console.log(`API running on 0.0.0.0:${port}`),
+  );
 };
 start().catch((e) => {
   console.error(e);

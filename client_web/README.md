@@ -18,11 +18,10 @@ cp .env.example .env
 npm start
 ```
 
-Mặc định frontend gọi backend test tại `http://localhost:5000/api`.
-Có thể đổi bằng biến môi trường:
+Port chạy frontend, API base URL và thông tin cửa hàng được cấu hình trong `.env`. Sao chép `.env.example` sang `.env` rồi chỉnh theo môi trường:
 
 ```env
-REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=<API base URL from your environment>
 ```
 
 Backend cần chạy trước và MongoDB phải hoạt động.

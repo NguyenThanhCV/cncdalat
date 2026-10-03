@@ -10,14 +10,23 @@ cp .env.example .env
 npm run dev
 ```
 
-## MongoDB
-Local:
-`mongodb://127.0.0.1:27017/shopdb`
+## Run the full project with Docker
 
-Docker:
+The Compose file in `server_web` starts MongoDB, the API, the customer website, and the admin website. On the first run, copy `server_web/.env.example` to `server_web/.env` and set a private `JWT_SECRET`. Keep an existing `.env` so local credentials are not overwritten.
+
+From the `server_web` directory:
+
 ```bash
-docker compose up -d --build
+docker compose up --build -d
+docker compose ps
+docker compose logs -f api client admin
 ```
+
+Open the storefront at `http://localhost:3000`, the admin at `http://localhost:3001`, and the API at `http://localhost:5001/api`. Change `CLIENT_PORT`, `ADMIN_PORT`, `API_HOST_PORT`, `PORT`, or `API_PREFIX` in `server_web/.env` to use different ports or API prefixes. If you change either website port, update `CLIENT_ORIGIN` or `ADMIN_ORIGIN` to the matching browser URL so API CORS allows it.
+
+The two web containers proxy their `/api` requests to the API service inside Docker. MongoDB stays on the private Compose network and stores its data in the persistent `mongo_data` volume. `docker compose down` stops the containers without removing that data.
+
+For local development without Docker, MongoDB can use `mongodb://127.0.0.1:27017/shopdb`.
 
 ## Seed development accounts
 ```bash
@@ -26,8 +35,8 @@ npm run seed
 Accounts: admin@gmail.com / 12345678, manager@gmail.com / 12345678, staff@gmail.com / 12345678.
 Change these passwords before production.
 
-## API base
-`http://localhost:5000/api`
+## Runtime configuration
+Copy `.env.example` to `.env`. Set `PORT`, `API_PREFIX`, `MONGODB_URI`, and the storefront/admin origins there. The API URL is the selected origin, port, and prefix (for example `http://localhost:5001/api`). The client and admin have their own `.env.example` files for their API base URLs and development ports.
 
 ### Auth
 - POST /auth/register
@@ -55,10 +64,11 @@ Change these passwords before production.
 - News: public list/detail/search/filter at /news; article management at /news and /admin/newsArticles
 - News categories: public active list at /news-categories; management at /news-categories and /admin/newsCategories
 - Banners: public page-specific list at /banners?page=home; protected management CRUD at /admin/banners
+- Global search: GET /search?q=... searches public products, news, categories, brands, active promotions, and usable coupons
 
 News management requires the matching `newsArticle.*` and `newsCategory.*` permissions. Admin, manager, and staff roles include these permissions.
 
-Seed development storefront content and page banners (idempotent; refuses `NODE_ENV=production`):
+Seed development storefront content and update text/layout for existing page banners (media URLs remain managed in the database/admin; scripts refuse `NODE_ENV=production`):
 ```bash
 npm run seed:sample
 npm run seed:banners

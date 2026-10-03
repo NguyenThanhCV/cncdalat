@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { localizedField } from "../../../utils/localized";
 import MediaDisplay from "../../../Components/MediaDisplay";
 import useSiteMedia from "../../../hooks/useSiteMedia";
+import { siteConfig } from "../../../config/site";
 
 export function HomeHero() {
   const { t } = useTranslation();
@@ -19,7 +20,7 @@ export function HomeHero() {
         <span className="field-eyebrow"><i /> {t("homeHeroEyebrow")}</span>
         <h1>{t("homeHeroTitleA")}<br /><em>{t("homeHeroTitleB")}</em><br />{t("homeHeroTitleC")}</h1>
         <p>{t("homeHeroText")}</p>
-        <div className="field-hero-actions"><Link to="/products" className="field-button">{t("homeExplore")} <span>↗</span></Link><a href={process.env.REACT_APP_MAP_URL || "#"} target="_blank" rel="noreferrer" className="field-location"><EnvironmentOutlined /> {t("homeLocation")}</a></div>
+        <div className="field-hero-actions"><Link to="/products" className="field-button">{t("homeExplore")} <span>↗</span></Link>{siteConfig.mapUrl && <a href={siteConfig.mapUrl} target="_blank" rel="noreferrer" className="field-location"><EnvironmentOutlined /> {t("homeLocation")}</a>}</div>
       </div>
       <div className="field-hero-index"><b>01</b><span>{t("homeSelected")}</span></div>
       <div className="field-hero-caption">{t("homeHeroCaption")}</div>

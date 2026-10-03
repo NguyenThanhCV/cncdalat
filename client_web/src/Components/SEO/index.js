@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import useSiteMedia from "../../hooks/useSiteMedia";
+import { siteConfig } from "../../config/site";
 
 const DEFAULT_TITLE = "Nhà kính công nghệ cao Đà Lạt | Thiết bị tưới & nông nghiệp";
 const DEFAULT_DESCRIPTION = "Nhà kính công nghệ cao Đà Lạt cung cấp vật tư nhà kính, thiết bị tưới và giải pháp nông nghiệp. Khám phá sản phẩm, quy cách và đặt hàng trực tuyến.";
-const STORE_EMAIL = process.env.REACT_APP_STORE_EMAIL || "congtynhakinhcongnghecaodalat@gmail.com";
-const STORE_PHONE = process.env.REACT_APP_STORE_PHONE || "0888004044";
+const STORE_EMAIL = siteConfig.storeEmail;
+const STORE_PHONE = siteConfig.storePhone;
 const PRIVATE_PATH = /^\/(login|register|cart|checkout|account|orders|wishlist|notifications|addresses)(\/|$)/;
 
 const PAGE_META = [
@@ -35,7 +37,7 @@ function upsertMeta(attribute, key, content) {
 }
 
 function publicBaseUrl() {
-  const configured = process.env.REACT_APP_SITE_URL;
+  const configured = siteConfig.siteUrl;
   if (configured) {
     try { return new URL(configured).origin; } catch (_) { return ""; }
   }
@@ -102,6 +104,7 @@ export function useSeo({ title, description, image, type = "website", noindex = 
 }
 
 export default function StorefrontSEO() {
+  const storeLogo = useSiteMedia("store-logo");
   const { pathname, search } = useLocation();
   const route = pathname.replace(/\/+$/, "") || "/";
   const page = PAGE_META.find(([pattern]) => pattern.test(route))?.[1];
@@ -112,14 +115,14 @@ export default function StorefrontSEO() {
   const hasProductFilters = route === "/products" && [...query.keys()].length > 0;
   const siteUrl = publicBaseUrl();
   const organization = {
-    "@context": process.env.REACT_APP_SCHEMA_CONTEXT,
+    "@context": siteConfig.schemaContext,
     "@type": "Organization",
-    name: "Nhà kính công nghệ cao Đà Lạt",
+    name: siteConfig.storeName,
     email: STORE_EMAIL,
     telephone: `+84${STORE_PHONE.replace(/\D/g, "").replace(/^0/, "")}`,
-    logo: siteUrl ? new URL("/nha-kinh-cong-nghe-cao-da-lat.jpg", siteUrl).href : undefined,
+    logo: storeLogo?.mediaUrl || undefined,
     url: siteUrl || undefined,
-    sameAs: [process.env.REACT_APP_FACEBOOK_URL, process.env.REACT_APP_TIKTOK_URL].filter(Boolean),
+    sameAs: [siteConfig.facebookUrl, siteConfig.tiktokUrl].filter(Boolean),
   };
   useSeo({
     title: page?.title || (isProduct ? "Chi tiết sản phẩm | Nhà kính công nghệ cao Đà Lạt" : isArticle ? "Bài viết nhà vườn | Nhà kính công nghệ cao Đà Lạt" : privatePage ? "Tài khoản mua sắm | Nhà kính công nghệ cao Đà Lạt" : DEFAULT_TITLE),

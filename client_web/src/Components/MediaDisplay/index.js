@@ -1,4 +1,5 @@
 import React from "react";
+import { siteConfig } from "../../config/site";
 import "./style.css";
 
 const VIDEO_FILE = /\.(mp4|webm|ogg|mov|m4v)(?:$|[?#])/i;
@@ -10,17 +11,17 @@ function getVideoSource(src) {
   if (VIDEO_FILE.test(value) || /\/video\/upload\//i.test(value)) return { kind: "file", src: value };
 
   try {
-    const url = new URL(value, typeof window === "undefined" ? "http://localhost" : window.location.origin);
+    const url = new URL(value, typeof window === "undefined" ? siteConfig.siteUrl : window.location.origin);
     const host = url.hostname.toLowerCase();
     if (host === "youtu.be" || host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtube-nocookie.com" || host.endsWith(".youtube-nocookie.com")) {
       const id = host === "youtu.be"
         ? url.pathname.split("/").filter(Boolean)[0]
         : url.searchParams.get("v") || url.pathname.match(/\/(?:embed|shorts|live)\/([^/?]+)/)?.[1];
-      if (id) return { kind: "embed", provider: "youtube", id, src: `https://www.youtube-nocookie.com/embed/${id}` };
+      if (id && siteConfig.youtubeEmbedBaseUrl) return { kind: "embed", provider: "youtube", id, src: `${siteConfig.youtubeEmbedBaseUrl.replace(/\/+$/, "")}/${id}` };
     }
     if (host === "vimeo.com" || host.endsWith(".vimeo.com")) {
       const id = url.pathname.match(/\/(?:video\/)?(\d+)(?:\/|$)/)?.[1];
-      if (id) return { kind: "embed", provider: "vimeo", id, src: `https://player.vimeo.com/video/${id}` };
+      if (id && siteConfig.vimeoEmbedBaseUrl) return { kind: "embed", provider: "vimeo", id, src: `${siteConfig.vimeoEmbedBaseUrl.replace(/\/+$/, "")}/${id}` };
     }
   } catch (_) {
     return null;

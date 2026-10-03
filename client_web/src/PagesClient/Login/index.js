@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Button, Checkbox, Form, Input, Modal, notification } from "antd";
+import { Button, Checkbox, Form, Input, notification } from "antd";
 
 import {
   GlobalOutlined,
@@ -12,7 +12,7 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { createStructuredSelector } from "reselect";
 import { connect } from "react-redux";
@@ -24,6 +24,7 @@ import { asyncLoginRequestAction } from "./stores/action";
 import "./index.css";
 import MediaDisplay from "../../Components/MediaDisplay";
 import useSiteMedia from "../../hooks/useSiteMedia";
+import * as shop from "../../api/shop";
 
 const LoginComponent = (props) => {
   const { loginRequestDispatch } = props;
@@ -32,10 +33,10 @@ const LoginComponent = (props) => {
   const storeLogo = useSiteMedia("store-logo");
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const isRegister = location.pathname === "/register";
 
   const [loading, setLoading] = useState(false);
-
-  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
 
   /*
    * =========================================================
@@ -45,8 +46,6 @@ const LoginComponent = (props) => {
 
   const changeLanguage = async (lang) => {
     await i18n.changeLanguage(lang);
-
-    setIsLanguageOpen(false);
   };
 
   /*
@@ -58,6 +57,13 @@ const LoginComponent = (props) => {
   const onFinish = async (values) => {
     try {
       setLoading(true);
+
+      if (isRegister) {
+        await shop.register({ name: values.name, email: values.email, phone: values.phone, password: values.password });
+        notification.success({ message: t("registerSuccess"), description: t("registerWelcome") });
+        navigate("/");
+        return;
+      }
 
       /*
        * values:
@@ -173,7 +179,7 @@ const LoginComponent = (props) => {
         description: (
           <div className="login-notification-description">
             {error?.response?.data?.message ||
-              t("loginUnexpectedError")}
+              t(isRegister ? "registerFailed" : "loginUnexpectedError")}
           </div>
         ),
 
@@ -201,8 +207,6 @@ const LoginComponent = (props) => {
    */
 
   const activeLanguage = (i18n.resolvedLanguage || i18n.language || "vi").split("-")[0];
-  const currentLanguage = activeLanguage === "vi" ? "Tiếng Việt" : "English";
-
   return (
     <div className="login-page">
       {/* =====================================================
@@ -218,12 +222,11 @@ const LoginComponent = (props) => {
       ===================================================== */}
 
       <div className="login-language">
-        <Button
-          type="text"
-          icon={<GlobalOutlined />}
-          onClick={() => setIsLanguageOpen(true)}>
-          {currentLanguage}
-        </Button>
+        <div className="login-language-switch" role="group" aria-label={t("loginChooseLanguage")}>
+          <GlobalOutlined aria-hidden="true" />
+          <Button type={activeLanguage === "vi" ? "primary" : "text"} onClick={() => changeLanguage("vi")} aria-pressed={activeLanguage === "vi"}>VI</Button>
+          <Button type={activeLanguage === "en" ? "primary" : "text"} onClick={() => changeLanguage("en")} aria-pressed={activeLanguage === "en"}>EN</Button>
+        </div>
       </div>
 
       {/* =====================================================
@@ -242,7 +245,7 @@ const LoginComponent = (props) => {
             {storeLogo?.mediaUrl && <MediaDisplay className="brand-logo" src={storeLogo.mediaUrl} mediaType={storeLogo.mediaType} alt={storeLogo.altText || t("storeName")} />}
 
             <div className="brand-info">
-              <div className="brand-name">NHÀ KÍNH ĐÀ LẠT</div>
+              <div className="brand-name">{t("loginBrandName")}</div>
 
           <div className="brand-subtitle">{t("loginBrandSubtitle")}</div>
             </div>
@@ -263,7 +266,7 @@ const LoginComponent = (props) => {
             </h1>
 
             <p>
-              {t("loginIntroDescription")}
+              {t(isRegister ? "registerDescription" : "loginIntroDescription")}
             </p>
 
             {/* FEATURES */}
@@ -298,7 +301,7 @@ const LoginComponent = (props) => {
           <Link to="/" className="brand login-card-brand">
             {storeLogo?.mediaUrl && <MediaDisplay className="brand-logo" src={storeLogo.mediaUrl} mediaType={storeLogo.mediaType} alt={storeLogo.altText || t("storeName")} />}
             <div className="brand-info">
-              <div className="brand-name">NHÀ KÍNH ĐÀ LẠT</div>
+              <div className="brand-name">{t("loginBrandName")}</div>
               <div className="brand-subtitle">{t("loginBrandSubtitle")}</div>
             </div>
           </Link>
@@ -310,9 +313,9 @@ const LoginComponent = (props) => {
               <LoginOutlined />
             </div>
 
-            <h2>{t("loginWelcome")}</h2>
+            <h2>{t(isRegister ? "registerWelcomeTitle" : "loginWelcome")}</h2>
 
-            <p>{t("loginContinue")}</p>
+            <p>{t(isRegister ? "registerDescription" : "loginContinue")}</p>
           </div>
 
           {/* =================================================
@@ -327,6 +330,12 @@ const LoginComponent = (props) => {
             }}
             onFinish={onFinish}
             className="login-form">
+            {isRegister && <Form.Item label={t("registerName")} name="name" rules={[{ required: true, message: t("registerNameRequired") }]}>
+              <Input size="large" prefix={<LoginOutlined />} placeholder={t("registerNamePlaceholder")} autoComplete="name" />
+            </Form.Item>}
+            {isRegister && <Form.Item label={t("registerPhone")} name="phone" rules={[{ pattern: /^[0-9+()\-\s]{8,20}$/, message: t("registerPhoneInvalid") }]}>
+              <Input size="large" prefix={<GlobalOutlined />} placeholder={t("registerPhonePlaceholder")} autoComplete="tel" />
+            </Form.Item>}
             {/* EMAIL */}
 
             <Form.Item
@@ -377,7 +386,7 @@ const LoginComponent = (props) => {
 
             {/* OPTIONS */}
 
-            <div className="login-options">
+            {!isRegister && <div className="login-options">
               <Form.Item name="remember" valuePropName="checked" noStyle>
                 <Checkbox>{t("loginRemember")}</Checkbox>
               </Form.Item>
@@ -395,7 +404,7 @@ const LoginComponent = (props) => {
                 }}>
                 {t("loginForgot")}
               </button>
-            </div>
+            </div>}
 
             {/* LOGIN BUTTON */}
 
@@ -407,7 +416,7 @@ const LoginComponent = (props) => {
                 block
                 loading={loading}
                 icon={<LoginOutlined />}>
-                {loading ? t("loginSubmitting") : t("loginSubmit")}
+                {loading ? t(isRegister ? "registerSubmitting" : "loginSubmitting") : t(isRegister ? "registerSubmit" : "loginSubmit")}
               </Button>
             </Form.Item>
           </Form>
@@ -415,21 +424,21 @@ const LoginComponent = (props) => {
           {/* REGISTER */}
 
           <div className="register-area">
-            <span>{t("loginNoAccount")}</span>
+            <span>{t(isRegister ? "registerHasAccount" : "loginNoAccount")}</span>
 
             <button
               type="button"
               onClick={() => {
-                navigate("/register");
+                navigate(isRegister ? "/login" : "/register");
               }}>
-              {t("loginRegister")}
+              {t(isRegister ? "registerGoLogin" : "loginRegister")}
             </button>
           </div>
 
           {/* FOOTER */}
 
           <div className="login-footer">
-            <span>© 2026 Nhà kính công nghệ cao Đà Lạt</span>
+            <span>{t("loginCopyright")}</span>
 
             <span>•</span>
 
@@ -438,46 +447,6 @@ const LoginComponent = (props) => {
         </div>
       </div>
 
-      {/* =====================================================
-          LANGUAGE MODAL
-      ===================================================== */}
-
-      <Modal
-        open={isLanguageOpen}
-        footer={null}
-        closable={false}
-        onCancel={() => {
-          setIsLanguageOpen(false);
-        }}
-        width={280}
-        centered
-        className="language-modal">
-        <div className="language-modal-content">
-          <div className="language-title">
-            <GlobalOutlined />
-
-            <span>{t("loginChooseLanguage")}</span>
-          </div>
-
-          <Button
-            block
-            onClick={() => {
-              changeLanguage("vi");
-            }}
-            className={activeLanguage === "vi" ? "language-active" : ""}>
-            🇻🇳 Tiếng Việt
-          </Button>
-
-          <Button
-            block
-            onClick={() => {
-              changeLanguage("en");
-            }}
-            className={activeLanguage === "en" ? "language-active" : ""}>
-            🇬🇧 English
-          </Button>
-        </div>
-      </Modal>
     </div>
   );
 };

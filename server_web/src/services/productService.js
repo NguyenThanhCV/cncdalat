@@ -4,6 +4,8 @@ const AppError = require("../utils/AppError");
 const escapeRegex = require("../utils/escapeRegex");
 const variantService = require("./variantService");
 const Promotion = require("../models/Promotion");
+const Category = require("../models/Category");
+const Brand = require("../models/Brand");
 
 const crud = require("./crudService").make(Model, {
   populate: [
@@ -104,12 +106,26 @@ exports.list = async (query = {}) => {
    */
   if (query.search) {
     const re = { $regex: escapeRegex(query.search), $options: "i" };
-    const variantProducts = await Variant.find({ $or: [{ sku: re }, { barcode: re }] }).distinct("product");
+    const [variantProducts, categoryIds, brandIds, descriptiveProducts] = await Promise.all([
+      Variant.find({ $or: [{ sku: re }, { barcode: re }] }).distinct("product"),
+      Category.find({ $or: [{ name: re }, { nameEn: re }, { slug: re }] }).distinct("_id"),
+      Brand.find({ $or: [{ name: re }, { nameEn: re }, { slug: re }] }).distinct("_id"),
+      Model.find({ $or: [
+        { description: re }, { descriptionEn: re },
+        { shortDescription: re }, { shortDescriptionEn: re },
+        { metaTitle: re }, { metaDescription: re }, { metaKeywords: re },
+      ] }).distinct("_id"),
+    ]);
     const searchConditions = [
       { name: re },
       { nameEn: re },
       { slug: re },
+      { sku: re },
+      { barcode: re },
+      { category: { $in: categoryIds } },
+      { brand: { $in: brandIds } },
       { _id: { $in: variantProducts } },
+      { _id: { $in: descriptiveProducts } },
     ];
     if (query.deal) {
       // The generic CRUD helper also adds its own name/code/title $or for search.
@@ -120,7 +136,7 @@ exports.list = async (query = {}) => {
     }
   }
 
-  if (query.deal && query.search) {
+  if (query.search) {
     const { search: _search, ...listingQuery } = query;
     return crud.list(filter, listingQuery);
   }

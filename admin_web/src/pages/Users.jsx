@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Page, Table, Btn, Modal } from "../components/UI";
+import { Page, Table, Btn, Danger, Modal } from "../components/UI";
 import { users } from "../api";
-import { canAdmin, isAdmin } from "../utils/adminPermissions";
+import { canAdmin, getAdminUser, isAdmin } from "../utils/adminPermissions";
 
 const roles = ["customer", "staff", "manager", "admin"];
 const roleLabels = { customer: "Khách hàng", staff: "Nhân viên", manager: "Quản lý", admin: "Admin" };
@@ -20,6 +20,8 @@ export default function Users() {
   const [saving, setSaving] = useState(false);
   const admin = isAdmin();
   const canStatus = canAdmin("user.status");
+  const canDelete = canAdmin("user.delete");
+  const currentUserId = getAdminUser()?._id;
 
   const load = async () => {
     setError("");
@@ -58,6 +60,11 @@ export default function Users() {
     } catch (e) { setError(e.response?.data?.message || e.message); }
     finally { setSaving(false); }
   };
+  const deleteUser = async (user) => {
+    if (user._id === currentUserId) { setError("Không thể xóa tài khoản đang đăng nhập."); return; }
+    if (!window.confirm(`Xóa tài khoản ${user.name} (${user.email})? Thao tác này không thể hoàn tác.`)) return;
+    try { await users.remove(user._id); await load(); } catch (e) { setError(e.response?.data?.message || e.message); }
+  };
 
   return <Page title="Người dùng" actions={<><Btn onClick={load}>↻ Làm mới</Btn>{admin && <Btn className="primary" onClick={() => { setForm(emptyUser); setError(""); setOpen(true); }}>+ Thêm tài khoản</Btn>}</>}>
     <div className="toolbar"><input placeholder="Tìm tên, email, điện thoại…" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} /><select value={role} onChange={(e) => setRole(e.target.value)}><option value="">Tất cả vai trò</option>{roles.map((item) => <option key={item} value={item}>{roleLabels[item]}</option>)}</select><select value={status} onChange={(e) => setStatus(e.target.value)}><option value="">Tất cả trạng thái</option>{Object.keys(statusLabels).map((item) => <option key={item} value={item}>{statusLabels[item]}</option>)}</select><Btn onClick={load}>Tìm</Btn><Btn onClick={showAll}>Tất cả</Btn></div>
@@ -68,7 +75,7 @@ export default function Users() {
       { key: "role", label: "Vai trò", render: (user) => admin ? <select value={user.role} onChange={(e) => changeRole(user, e.target.value)}>{roles.map((item) => <option key={item} value={item}>{roleLabels[item]}</option>)}</select> : roleLabels[user.role] || user.role },
       { key: "status", label: "Trạng thái", render: (user) => <span className={`status-pill ${user.status}`}>{statusLabels[user.status] || user.status}</span> },
       { key: "lastLoginAt", label: "Đăng nhập cuối", render: (user) => user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString("vi-VN") : "Chưa có" },
-      { key: "actions", label: "Thao tác", render: (user) => <span className="actions"><Link className="btn small" to={`/admin/users/${user._id}`}>Chi tiết</Link>{canStatus && <Btn onClick={() => toggleStatus(user)}>{user.status === "active" ? "Khóa" : "Mở"}</Btn>}</span> },
+      { key: "actions", label: "Thao tác", render: (user) => <span className="actions"><Link className="btn small" to={`/admin/users/${user._id}`}>Chi tiết / sửa</Link>{canStatus && <Btn onClick={() => toggleStatus(user)}>{user.status === "active" ? "Khóa" : "Mở"}</Btn>}{canDelete && user._id !== currentUserId && <Danger onClick={() => deleteUser(user)}>Xóa</Danger>}</span> },
     ]} />
     {open && <Modal title="Thêm tài khoản" onClose={() => setOpen(false)}><form className="formgrid" onSubmit={createUser}>
       {error && <div className="error full">{error}</div>}

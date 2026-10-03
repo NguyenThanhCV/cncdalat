@@ -5,6 +5,7 @@ import { useSeo } from "../../Components/SEO";
 import { useTranslation } from "react-i18next";
 import { localizedField } from "../../utils/localized";
 import useSiteMedia from "../../hooks/useSiteMedia";
+import { siteConfig } from "../../config/site";
 import MediaDisplay from "../../Components/MediaDisplay";
 import "./style.css";
 
@@ -65,7 +66,7 @@ export function NewsDetailPage() {
   const articleContent = localizedField(article, "content", i18n.resolvedLanguage);
   const articleCategory = localizedField(article?.category, "name", i18n.resolvedLanguage);
   const articleSchema = article?.title ? {
-    "@context": process.env.REACT_APP_SCHEMA_CONTEXT,
+    "@context": siteConfig.schemaContext,
     "@type": "NewsArticle",
     headline: articleTitle,
     description: articleExcerpt || articleTitle,

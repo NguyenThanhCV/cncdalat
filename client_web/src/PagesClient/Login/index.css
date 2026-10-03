@@ -963,6 +963,11 @@
 .feature-icon { color: #bb6c1d; background: #fff0d7; }
 .login-language .ant-btn { color: #885321; border-color: rgba(151, 93, 31, .16); }
 .login-language .ant-btn:hover { color: #b75e1c; border-color: #e4b66b; }
+.login-language-switch { display: inline-flex; align-items: center; gap: 3px; padding: 4px; border: 1px solid rgba(151, 93, 31, .2); border-radius: 999px; background: rgba(255, 253, 248, .88); box-shadow: 0 6px 18px rgba(101, 66, 29, .08); }
+.login-language-switch>.anticon { margin: 0 4px 0 7px; color: #a86b2d; }
+.login-language-switch .ant-btn { min-width: 39px; height: 30px; padding: 0 9px; border: 0; border-radius: 999px; color: #785a3e; font-size: 11px; font-weight: 750; }
+.login-language-switch .ant-btn-primary { color: #fffaf0; background: #c66b22; box-shadow: 0 2px 7px rgba(198, 107, 34, .22); }
+.login-language-switch .ant-btn:not(.ant-btn-primary):hover { color: #a95d1d; background: #fff2dc; }
 .login-icon { color: #c66b22; background: #fff0d7; }
 .login-card-header h2 { color: #493321; }
 .login-card-header p { color: #8a7867; }

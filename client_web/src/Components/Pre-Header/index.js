@@ -9,9 +9,10 @@ import {
 } from "@ant-design/icons";
 
 import "./index.css";
+import { siteConfig } from "../../config/site";
 
-const storePhone = process.env.REACT_APP_STORE_PHONE || "0888004044";
-const storeEmail = process.env.REACT_APP_STORE_EMAIL || "congtynhakinhcongnghecaodalat@gmail.com";
+const storePhone = siteConfig.storePhone;
+const storeEmail = siteConfig.storeEmail;
 
 const PreHeader = () => {
   const { t } = useTranslation();
@@ -63,7 +64,7 @@ const PreHeader = () => {
 
           {/* LOCATION */}
 
-          <a className="pre-header-contact location" href={process.env.REACT_APP_MAP_URL || "#"} target="_blank" rel="noreferrer">
+          {siteConfig.mapUrl && <a className="pre-header-contact location" href={siteConfig.mapUrl} target="_blank" rel="noreferrer">
             <span className="pre-header-icon">
               <EnvironmentOutlined />
             </span>
@@ -73,7 +74,7 @@ const PreHeader = () => {
 
               <strong>{t("viewOnGoogleMaps")} ↗</strong>
             </span>
-          </a>
+          </a>}
         </div>
 
         {/* =========================================
@@ -96,13 +97,13 @@ const PreHeader = () => {
           {/* SOCIAL */}
 
           <div className="pre-header-social">
-            <a href={process.env.REACT_APP_FACEBOOK_URL || "#"} target="_blank" rel="noreferrer" aria-label={t("facebookStore")} title={t("facebookStore")}>
+            {siteConfig.facebookUrl && <a href={siteConfig.facebookUrl} target="_blank" rel="noreferrer" aria-label={t("facebookStore")} title={t("facebookStore")}>
               <FacebookOutlined />
-            </a>
+            </a>}
 
-            <a href={process.env.REACT_APP_TIKTOK_URL || "#"} target="_blank" rel="noreferrer" aria-label={t("tiktokStore")} title={t("tiktokStore")} className="pre-header-tiktok">
+            {siteConfig.tiktokUrl && <a href={siteConfig.tiktokUrl} target="_blank" rel="noreferrer" aria-label={t("tiktokStore")} title={t("tiktokStore")} className="pre-header-tiktok">
               ♪
-            </a>
+            </a>}
           </div>
         </div>
       </div>

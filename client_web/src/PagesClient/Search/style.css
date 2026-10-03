@@ -1,0 +1,26 @@
+.global-search-page { width: min(1180px, calc(100% - 40px)); min-height: 50vh; margin: 0 auto; padding: 52px 0 80px; color: #25382a; }
+.global-search-heading { margin: 0 auto 28px; text-align: center; }
+.global-search-heading>span { color: #9b671c; font-size: 11px; font-weight: 800; letter-spacing: .14em; }
+.global-search-heading h1 { margin: 10px 0 8px; color: #23452e; font: 600 clamp(30px, 4vw, 42px)/1.15 Georgia,serif; }
+.global-search-heading p,.global-search-total { color: #738075; }
+.global-search-total { padding: 14px 0; border-bottom: 1px solid #e7ece4; }
+.global-search-section { margin: 30px 0 42px; }
+.global-search-section-heading { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+.global-search-section-heading h2 { margin: 0; color: #304936; font-size: 22px; }
+.global-search-section-heading>span { color: #8b958b; font-size: 13px; }
+.global-search-section-heading>a { margin-left: auto; color: #326243; font-size: 13px; font-weight: 700; }
+.global-search-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.global-search-card { display: grid; grid-template-columns: 116px minmax(0,1fr); min-height: 112px; overflow: hidden; border: 1px solid #e5eade; border-radius: 13px; background: #fff; color: inherit; transition: .2s ease; }
+.global-search-card:hover { border-color: #b9cbaa; box-shadow: 0 8px 22px #24452c10; transform: translateY(-2px); }
+.global-search-card-media { width: 116px; height: 100%; min-height: 112px; object-fit: cover; background: #eff3eb; }
+.global-search-card>div:last-child { align-self: center; padding: 14px 16px; }
+.global-search-card h3 { margin: 0 0 6px; color: #284831; font-size: 15px; line-height: 1.4; }
+.global-search-card p { display: -webkit-box; overflow: hidden; margin: 0; color: #768176; font-size: 13px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.global-search-chip-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.global-search-chip { display: inline-flex; align-items: center; gap: 10px; min-height: 50px; padding: 6px 14px 6px 7px; border: 1px solid #e5eade; border-radius: 28px; color: #34533c; background: #fff; }
+.global-search-chip .media-display { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #eff3eb; }
+.global-search-offer-icon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: #fff; background: #b77819; font-weight: 800; }
+.global-search-offer-code { padding: 8px 10px; border: 1px dashed #c4974b; border-radius: 8px; color: #81530d; background: #fff7e4; font-size: 12px; font-weight: 800; letter-spacing: .05em; }
+.global-search-loading { display: grid; min-height: 240px; place-items: center; }
+.global-search-message { padding: 24px; border-radius: 12px; color: #93402e; background: #fff2ee; }
+@media(max-width:700px) { .global-search-page { width: min(100% - 28px,1180px); padding-top: 36px; } .global-search-grid { grid-template-columns: 1fr; } .global-search-card { grid-template-columns: 96px minmax(0,1fr); } .global-search-card-media { width: 96px; } .global-search-section-heading h2 { font-size: 19px; } }

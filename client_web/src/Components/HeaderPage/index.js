@@ -137,7 +137,7 @@ const HeaderPage = () => {
       return;
     }
 
-    navigate(`/products?search=${encodeURIComponent(keyword)}`);
+    navigate(`/search?q=${encodeURIComponent(keyword)}`);
 
     setMobileMenuOpen(false);
   };
@@ -629,7 +629,7 @@ const HeaderPage = () => {
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
             onKeyDown={handleSearchKeyDown}
-            placeholder={t("productSearchPlaceholder")}
+            placeholder={t("headerSearchPlaceholder")}
             suffix={
               <SearchOutlined
                 onClick={handleSearch}

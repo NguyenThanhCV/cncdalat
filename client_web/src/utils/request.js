@@ -1,8 +1,8 @@
 import axios from "axios";
+import { siteConfig } from "../config/site";
 
-const API_URL = (
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api"
-).replace(/\/+$/, "");
+const API_URL = siteConfig.apiUrl.replace(/\/+$/, "");
+if (!API_URL) throw new Error("REACT_APP_API_URL is missing. Configure it in the client .env file.");
 
 const request = axios.create({
   baseURL: API_URL,

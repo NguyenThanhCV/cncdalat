@@ -20,6 +20,22 @@
 .admin-logo > span strong { color: #fff; font-size: 14px; letter-spacing: .08em; }
 .admin-logo > span small { color: #a7c6ad; font-size: 9px; letter-spacing: .06em; white-space: nowrap; }
 
+.data-manager-controls {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.7fr) minmax(260px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+.data-manager-controls label { display: grid; gap: 6px; color: #475569; font-size: 12px; font-weight: 700; }
+.data-manager-controls input, .data-manager-controls select { width: 100%; min-height: 38px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; }
+.data-manager-controls > .muted { white-space: nowrap; padding: 10px 0; }
+@media (max-width: 800px) { .data-manager-controls { grid-template-columns: 1fr; } .data-manager-controls > .muted { white-space: normal; } }
+
 @media (max-width: 650px) {
   .admin-logo { justify-content: center; }
   .admin-logo > img { width: 48px; height: 48px; }

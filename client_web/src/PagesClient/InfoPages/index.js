@@ -1,14 +1,15 @@
 import React from "react";
+import { siteConfig } from "../../config/site";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PhoneOutlined, MailOutlined, EnvironmentOutlined, ShoppingOutlined, SafetyCertificateOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import "./style.css";
 
 const STORE = {
-  name: "Nhà kính công nghệ cao Đà Lạt",
-  phone: process.env.REACT_APP_STORE_PHONE || "0888004044",
-  email: process.env.REACT_APP_STORE_EMAIL || "congtynhakinhcongnghecaodalat@gmail.com",
-  mapUrl: process.env.REACT_APP_MAP_URL || "",
+  name: siteConfig.storeName,
+  phone: siteConfig.storePhone,
+  email: siteConfig.storeEmail,
+  mapUrl: siteConfig.mapUrl,
 };
 
 const EN = {

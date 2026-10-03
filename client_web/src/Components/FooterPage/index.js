@@ -12,14 +12,15 @@ import {
 import "./index.css";
 import MediaDisplay from "../MediaDisplay";
 import useSiteMedia from "../../hooks/useSiteMedia";
+import { siteConfig } from "../../config/site";
 
 const STORE = {
-  phone: process.env.REACT_APP_STORE_PHONE || "0888004044",
-  phoneLink: `tel:${(process.env.REACT_APP_STORE_PHONE || "0888004044").replaceAll(" ", "")}`,
-  email: process.env.REACT_APP_STORE_EMAIL || "congtynhakinhcongnghecaodalat@gmail.com",
-  mapUrl: process.env.REACT_APP_MAP_URL || "",
-  facebookUrl: process.env.REACT_APP_FACEBOOK_URL || "",
-  tiktokUrl: process.env.REACT_APP_TIKTOK_URL || "",
+  phone: siteConfig.storePhone,
+  phoneLink: `tel:${siteConfig.storePhone.replaceAll(" ", "")}`,
+  email: siteConfig.storeEmail,
+  mapUrl: siteConfig.mapUrl,
+  facebookUrl: siteConfig.facebookUrl,
+  tiktokUrl: siteConfig.tiktokUrl,
 };
 
 const FooterLink = ({ to, children }) => (
@@ -105,7 +106,7 @@ export default function FooterPage() {
 
       <div className="footer-bottom">
         <div className="footer-container footer-bottom-inner">
-          <p>© {new Date().getFullYear()} <strong>{storeName}</strong>. {t("footerCopyright")}</p>
+          <p>© {new Date().getFullYear()} <strong>{storeName}</strong>. {t("footerCopyright")} <span className="footer-credit">{t("footerDevelopedBy")}</span></p>
           <nav className="footer-bottom-links" aria-label={t("footerCustomerSupport")}><Link to="/privacy">{t("footerPrivacy")}</Link><span aria-hidden="true">·</span><Link to="/terms">{t("footerTerms")}</Link><span aria-hidden="true">·</span><Link to="/contact">{t("footerContact")}</Link></nav>
         </div>
       </div>

@@ -28,6 +28,7 @@ import { createStructuredSelector } from "reselect";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { localizedField } from "../../utils/localized";
+import { siteConfig } from "../../config/site";
 import MediaDisplay from "../../Components/MediaDisplay";
 
 import {
@@ -587,7 +588,7 @@ const ProductDetail = ({
   const productDescription = String(localizedShortDescription || localizedDescription || "")
     .replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   const productSchema = productName ? {
-    "@context": process.env.REACT_APP_SCHEMA_CONTEXT,
+    "@context": siteConfig.schemaContext,
     "@type": "Product",
     name: productName,
     description: productDescription || `${productName} at Da Lat High-Tech Greenhouse.`,
@@ -607,8 +608,8 @@ const ProductDetail = ({
         "@type": "Offer",
         priceCurrency: "VND",
         price: Number(currentPrice),
-        availability: `${process.env.REACT_APP_SCHEMA_CONTEXT}/${currentStock > 0 ? "InStock" : "OutOfStock"}`,
-        itemCondition: `${process.env.REACT_APP_SCHEMA_CONTEXT}/NewCondition`,
+        availability: `${siteConfig.schemaContext}/${currentStock > 0 ? "InStock" : "OutOfStock"}`,
+        itemCondition: `${siteConfig.schemaContext}/NewCondition`,
       },
     } : {}),
   } : undefined;

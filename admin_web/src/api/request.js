@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const baseURL = (import.meta.env.VITE_API_URL || "http://localhost:5000/api")
-  .replace(/\/+$/, "");
+const baseURL = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+if (!baseURL) throw new Error("VITE_API_URL is missing. Configure it in the admin .env file.");
 const request = axios.create({
   baseURL,
   headers: { "Content-Type": "application/json" },
