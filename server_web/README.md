@@ -22,9 +22,9 @@ docker compose ps
 docker compose logs -f api client admin
 ```
 
-Open the storefront at `http://localhost:3000`, the admin at `http://localhost:3001`, and the API at `http://localhost:5001/api`. Change `CLIENT_PORT`, `ADMIN_PORT`, `API_HOST_PORT`, `PORT`, or `API_PREFIX` in `server_web/.env` to use different ports or API prefixes. If you change either website port, update `CLIENT_ORIGIN` or `ADMIN_ORIGIN` to the matching browser URL so API CORS allows it.
+Open the storefront at `http://localhost:13210`, the admin at `http://localhost:13209`, and the API at `http://localhost:5001/api`. Change `CLIENT_PORT`, `ADMIN_PORT`, `API_HOST_PORT`, `PORT`, or `API_PREFIX` in `server_web/.env` to use different ports or API prefixes. Set `API_PUBLIC_URL=/api` so browser requests use the same website origin; each web container proxies `/api` to the API service on port 5001. Set `CLIENT_ORIGIN` and `ADMIN_ORIGIN` to the public browser origins so API CORS allows them.
 
-The two web containers proxy their `/api` requests to the API service inside Docker. MongoDB stays on the private Compose network and stores its data in the persistent `mongo_data` volume. `docker compose down` stops the containers without removing that data.
+The two web containers proxy their same-origin `/api` requests to the API service inside Docker. This avoids exposing a browser request to `localhost` when the website is opened through a domain. MongoDB stays on the private Compose network and stores its data in the persistent `mongo_data` volume. `docker compose down` stops the containers without removing that data.
 
 For local development without Docker, MongoDB can use `mongodb://127.0.0.1:27017/shopdb`.
 
@@ -36,7 +36,7 @@ Accounts: admin@gmail.com / 12345678, manager@gmail.com / 12345678, staff@gmail.
 Change these passwords before production.
 
 ## Runtime configuration
-Copy `.env.example` to `.env`. Set `PORT`, `API_PREFIX`, `MONGODB_URI`, and the storefront/admin origins there. The API URL is the selected origin, port, and prefix (for example `http://localhost:5001/api`). The client and admin have their own `.env.example` files for their API base URLs and development ports.
+Copy `.env.example` to `.env`. Set `PORT`, `API_PREFIX`, `API_PUBLIC_URL`, `MONGODB_URI`, and the storefront/admin origins there. For Docker, keep `API_PUBLIC_URL=/api` so the browser uses the same-origin proxy; `http://localhost:5001/api` is for direct local API access and diagnostics. The client and admin have their own `.env.example` files for local development API base URLs and ports.
 
 ### Auth
 - POST /auth/register

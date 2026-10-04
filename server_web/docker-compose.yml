@@ -41,7 +41,7 @@ services:
     build:
       context: ../client_web
       args:
-        REACT_APP_API_URL: ${API_PUBLIC_URL:-http://localhost:5001/api}
+        REACT_APP_API_URL: ${API_PUBLIC_URL:-/api}
         REACT_APP_SITE_URL: ${CLIENT_ORIGIN:-http://localhost:3000}
     restart: unless-stopped
     ports:
@@ -58,7 +58,7 @@ services:
     build:
       context: ../admin_web
       args:
-        VITE_API_URL: ${API_PUBLIC_URL:-http://localhost:5001/api}
+        VITE_API_URL: ${API_PUBLIC_URL:-/api}
         VITE_STOREFRONT_URL: ${CLIENT_ORIGIN:-http://localhost:3000}
     restart: unless-stopped
     ports:
