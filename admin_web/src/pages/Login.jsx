@@ -9,7 +9,7 @@ export default function Login() {
   const d = useDispatch(), nav = useNavigate(), s = useSelector(x => x.auth);
   const [e, setE] = useState(""), [p, setP] = useState("");
   const [logo,setLogo]=useState('');
-  useEffect(()=>{siteMedia.list().then(r=>setLogo((r?.data?.data||[]).find(x=>x.key==='store-logo')?.mediaUrl||'')).catch(()=>{})},[]);
+  useEffect(()=>{siteMedia.publicList().then(r=>setLogo((r?.data?.data||[]).find(x=>x.key==='store-logo')?.mediaUrl||'')).catch(()=>{})},[]);
   useEffect(() => { if (s.token) nav("/admin", { replace: true }); }, [s.token, nav]);
   const submit = x => { x.preventDefault(); d({ type: "LOGIN_REQ", payload: { email: e, password: p } }); };
   return <div className="login"><form onSubmit={submit}>{logo&&<MediaPreview className="admin-login-logo" src={logo} alt="Logo Nhà kính công nghệ cao Đà Lạt"/>}<h1>Nhà kính công nghệ cao Đà Lạt</h1><p>Đăng nhập quản trị cửa hàng</p>
